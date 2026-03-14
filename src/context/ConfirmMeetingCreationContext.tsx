@@ -1,0 +1,423 @@
+import {
+  useState,
+  useRef,
+  use,
+  createContext,
+  type ReactNode,
+  useCallback,
+  useMemo,
+  type ComponentType,
+  type ComponentProps,
+  useEffect,
+  type MouseEvent,
+  type CSSProperties,
+  type SubmitEvent,
+  type ChangeEvent,
+  useLayoutEffect,
+} from "react";
+import { createPortal } from "react-dom";
+import {
+  formatMinutesAsTime,
+  formatDateForInput,
+  parseDateInput,
+  WORKDAY_END_MIN,
+  WORKDAY_START_MIN,
+  minutesFromMidnight,
+} from "../lib/date-utils";
+
+type FormValues = {
+  name: string;
+  description: string;
+  date: string;
+  start: string;
+  end: string;
+};
+
+type ConfirmOptions = {
+  title: string;
+  style?: CSSProperties;
+  step?: number;
+  start?: Date;
+  end?: Date;
+  date?: Date;
+  /** Date picker range in the form (YYYY-MM-DD). */
+  minDate?: string;
+  maxDate?: string;
+  /** Returns true if a meeting already exists in the selected slot (time overlap). */
+  checkOverlap?: (start: Date, end: Date) => boolean;
+  /** Called when day/time changes in the form (to sync with ghost). */
+  onDraftChange?: (start: Date, end: Date, date: Date) => void;
+  /** Called when the meeting name changes in the form (to sync ghost label). */
+  onDraftNameChange?: (name: string) => void;
+  /** Returns the ghost block rect for positioning the modal next to it. */
+  getAnchorRect?: () => DOMRect | null;
+};
+
+export type UpdateCreateFormDraft = (
+  start: Date,
+  end: Date,
+  date: Date,
+) => void;
+
+/* Promise type for the confirm meeting creation */
+type PromiseType =
+  | { name: string; description: string; start: Date; end: Date }
+  | false;
+
+type ConfirmContextValue = {
+  confirmMeetingCreation: (options: ConfirmOptions) => Promise<PromiseType>;
+  updateCreateFormDraft: UpdateCreateFormDraft;
+};
+
+const ConfirmMeetingCreationContext = createContext<ConfirmContextValue>(
+  null as unknown as ConfirmContextValue,
+);
+
+type ConfirmMeetingCreationProviderProps = {
+  children?: ReactNode;
+};
+
+export const ConfirmMeetingCreationProvider = ({
+  children,
+}: ConfirmMeetingCreationProviderProps) => {
+  const [options, setOptions] = useState<ConfirmOptions | null>(null);
+  const [formValues, setFormValues] = useState<FormValues>({
+    name: "New meeting",
+    description: "",
+    date: formatDateForInput(new Date()),
+    start: formatMinutesAsTime(WORKDAY_START_MIN),
+    end: formatMinutesAsTime(WORKDAY_START_MIN + 60),
+  });
+  const [overlapError, setOverlapError] = useState<string | null>(null);
+  const awaitingPromiseRef = useRef<{
+    resolve: (value: PromiseType) => void;
+  } | null>(null);
+  const cancelBtnRef = useRef<HTMLButtonElement>(null);
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  const optionsRef = useRef<ConfirmOptions | null>(null);
+  const [modalPosition, setModalPosition] = useState<{
+    left: number;
+    top: number;
+  } | null>(null);
+  useEffect(() => {
+    optionsRef.current = options;
+  }, [options]);
+
+  const MODAL_WIDTH = 300;
+  const GAP = 8;
+  useLayoutEffect(() => {
+    const getAnchorRect = options?.getAnchorRect;
+    const id = requestAnimationFrame(() => {
+      if (!getAnchorRect) {
+        setModalPosition(null);
+        return;
+      }
+      const rect = getAnchorRect();
+      if (!rect) {
+        setModalPosition(null);
+        return;
+      }
+      const win = typeof window !== "undefined" ? window : null;
+      const maxLeft = win ? win.innerWidth - MODAL_WIDTH : 0;
+      const maxTop = win ? win.innerHeight - 400 : 0;
+      const viewportWidth = win ? win.innerWidth : 0;
+      let left: number;
+      if (rect.right + GAP + MODAL_WIDTH <= viewportWidth) {
+        left = rect.right + GAP;
+      } else if (rect.left - GAP - MODAL_WIDTH >= 0) {
+        left = rect.left - GAP - MODAL_WIDTH;
+      } else {
+        left = Math.max(GAP, Math.min(maxLeft - GAP, rect.left));
+      }
+      const top = Math.max(GAP, Math.min(maxTop, rect.top));
+      setModalPosition({ left, top });
+    });
+    return () => cancelAnimationFrame(id);
+  }, [options]);
+
+  const openModal = useCallback((opts: ConfirmOptions) => {
+    setOptions(opts);
+    setOverlapError(null);
+    const baseDate = opts.date ?? opts.start ?? new Date();
+    let dateStr = formatDateForInput(baseDate);
+    if (opts.minDate && dateStr < opts.minDate) dateStr = opts.minDate;
+    if (opts.maxDate && dateStr > opts.maxDate) dateStr = opts.maxDate;
+    const startStr = opts.start
+      ? formatMinutesAsTime(minutesFromMidnight(opts.start))
+      : formatMinutesAsTime(WORKDAY_START_MIN);
+    const endStr = opts.end
+      ? formatMinutesAsTime(minutesFromMidnight(opts.end))
+      : formatMinutesAsTime(WORKDAY_START_MIN + 60);
+    setFormValues((prev) => ({
+      ...prev,
+      name: "New meeting",
+      date: dateStr,
+      start: startStr,
+      end: endStr,
+    }));
+    return new Promise<PromiseType>((resolve) => {
+      awaitingPromiseRef.current = { resolve };
+    });
+  }, []);
+
+  const handleClose = useCallback(() => {
+    if (awaitingPromiseRef.current) {
+      awaitingPromiseRef.current.resolve(false);
+    }
+    setOverlapError(null);
+    setModalPosition(null);
+    setFormValues((prev) => ({
+      ...prev,
+      date: formatDateForInput(new Date()),
+      start: formatMinutesAsTime(WORKDAY_START_MIN),
+      end: formatMinutesAsTime(WORKDAY_START_MIN + 60),
+    }));
+    dialogRef.current?.close();
+    setOptions(null);
+  }, []);
+
+  const handleConfirm = useCallback(
+    async (e: SubmitEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      const formData = new FormData(e.currentTarget);
+      const opts = options;
+      if (!opts || !awaitingPromiseRef.current) return;
+
+      const dateStr = formData.get("date") as string;
+      const startStr = formData.get("start") as string;
+      const endStr = formData.get("end") as string;
+      const [startH, startM] = startStr.split(":").map(Number);
+      const [endH, endM] = endStr.split(":").map(Number);
+
+      const date = parseDateInput(dateStr);
+      const start = new Date(date);
+      start.setHours(startH, startM, 0, 0);
+      const end = new Date(date);
+      end.setHours(endH, endM, 0, 0);
+
+      const durationMs = end.getTime() - start.getTime();
+      if (durationMs < 15 * 60 * 1000) {
+        setOverlapError("Meeting must be at least 15 minutes.");
+        return;
+      }
+      if (opts.checkOverlap?.(start, end)) {
+        setOverlapError("A meeting already exists at this time.");
+        return;
+      }
+
+      setOverlapError(null);
+      awaitingPromiseRef.current.resolve({
+        name: formData.get("name") as string,
+        description: formData.get("description") as string,
+        start,
+        end,
+      });
+      dialogRef.current?.close();
+      setOptions(null);
+    },
+    [options],
+  );
+
+  useEffect(() => {
+    if (!options) return;
+    dialogRef.current?.showModal();
+  }, [options]);
+
+  const handleDialogClick = (e: MouseEvent<HTMLDialogElement>) => {
+    if (e.target !== e.currentTarget) return;
+    const sel = window.getSelection();
+    const hasSelectionInDialog =
+      sel?.rangeCount &&
+      sel.rangeCount > 0 &&
+      dialogRef.current?.contains(sel.anchorNode);
+    if (hasSelectionInDialog && sel?.toString().trim().length > 0) return;
+    handleClose();
+  };
+
+  const handleFormChange = useCallback(
+    (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      const { name, value } = e.target;
+      setFormValues((prev) => {
+        const next = { ...prev, [name]: value };
+        const opts = optionsRef.current;
+        if (name === "name") {
+          opts?.onDraftNameChange?.(value);
+        } else if (
+          opts?.onDraftChange &&
+          (name === "date" || name === "start" || name === "end")
+        ) {
+          const dateStr = name === "date" ? value : prev.date;
+          const startStr = name === "start" ? value : prev.start;
+          const endStr = name === "end" ? value : prev.end;
+          const d = parseDateInput(dateStr);
+          const [startH, startM] = startStr.split(":").map(Number);
+          const [endH, endM] = endStr.split(":").map(Number);
+          const start = new Date(d);
+          start.setHours(startH, startM, 0, 0);
+          const end = new Date(d);
+          end.setHours(endH, endM, 0, 0);
+          opts.onDraftChange(start, end, d);
+        }
+        return next;
+      });
+    },
+    [],
+  );
+
+  const updateCreateFormDraft = useCallback(
+    (start: Date, end: Date, date: Date) => {
+      if (!options) return;
+      setFormValues((prev) => ({
+        ...prev,
+        date: formatDateForInput(date),
+        start: formatMinutesAsTime(minutesFromMidnight(start)),
+        end: formatMinutesAsTime(minutesFromMidnight(end)),
+      }));
+      setOptions((prev) => (prev ? { ...prev, start, end, date } : null));
+    },
+    [options],
+  );
+
+  const contextValue: ConfirmContextValue = useMemo(
+    () => ({
+      confirmMeetingCreation: openModal,
+      updateCreateFormDraft,
+    }),
+    [openModal, updateCreateFormDraft],
+  );
+
+  return (
+    <ConfirmMeetingCreationContext value={contextValue}>
+      {children}
+      {options &&
+        createPortal(
+          <dialog
+            ref={dialogRef}
+            className="fixed backdrop:bg-transparent p-4 w-[300px] bg-white rounded-lg shadow-lg"
+            onClick={handleDialogClick}
+            onCancel={handleClose}
+            style={
+              modalPosition
+                ? { left: modalPosition.left, top: modalPosition.top }
+                : {
+                    ...options.style,
+                    left: "50%",
+                    top: "50%",
+                    transform: "translate(-50%, -50%)",
+                  }
+            }
+          >
+            <div className="flex flex-col gap-2">
+              <div className="title-block">
+                <h2 className="text-lg font-bold">{options.title}</h2>
+              </div>
+
+              <form onSubmit={handleConfirm} className="flex flex-col gap-4">
+                <input
+                  name="name"
+                  type="text"
+                  placeholder="Meeting Name"
+                  onChange={handleFormChange}
+                  value={formValues.name}
+                  required
+                  className="border border-gray-200 rounded-md p-1"
+                  aria-label="Meeting name"
+                />
+                <textarea
+                  name="description"
+                  placeholder="Meeting Description"
+                  onChange={handleFormChange}
+                  value={formValues.description}
+                  className="border resize-none border-gray-200 rounded-md p-1"
+                  maxLength={300}
+                  rows={5}
+                />
+                {overlapError && (
+                  <p className="text-red-600 text-sm" role="alert">
+                    {overlapError}
+                  </p>
+                )}
+                <div className="flex flex-col gap-1">
+                  <label className="text-sm font-medium" htmlFor="date">
+                    Day
+                  </label>
+                  <input
+                    id="date"
+                    name="date"
+                    type="date"
+                    min={options.minDate}
+                    max={options.maxDate}
+                    onChange={handleFormChange}
+                    value={formValues.date}
+                    className="border border-gray-200 rounded-md p-1"
+                    required
+                  />
+                </div>
+                <div className="flex gap-2 items-center">
+                  <input
+                    name="start"
+                    type="time"
+                    step={900}
+                    min={formatMinutesAsTime(WORKDAY_START_MIN)}
+                    max={formatMinutesAsTime(WORKDAY_END_MIN - 15)}
+                    onChange={handleFormChange}
+                    value={formValues.start}
+                    className="border border-gray-200 rounded-md p-1 flex-1"
+                    required
+                  />
+                  <span>–</span>
+                  <input
+                    name="end"
+                    type="time"
+                    step={900}
+                    min={(() => {
+                      const [h, m] = formValues.start.split(":").map(Number);
+                      const startMins = h * 60 + m;
+                      return formatMinutesAsTime(
+                        Math.min(startMins + 15, WORKDAY_END_MIN),
+                      );
+                    })()}
+                    max={formatMinutesAsTime(WORKDAY_END_MIN)}
+                    onChange={handleFormChange}
+                    value={formValues.end}
+                    required
+                    className="border border-gray-200 rounded-md p-1 flex-1"
+                  />
+                </div>
+
+                <div className="flex gap-2 text-base self-end">
+                  <button
+                    ref={cancelBtnRef}
+                    className="bg-white text-black hover:bg-gray-100 active:bg-gray-200 px-2 py-1 cursor-pointer rounded-md border border-gray-200"
+                    onClick={handleClose}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="bg-primary-500 hover:bg-primary-600 active:bg-primary-700 text-primary-950 px-2 py-1 cursor-pointer rounded-md"
+                  >
+                    Confirm
+                  </button>
+                </div>
+              </form>
+            </div>
+          </dialog>,
+          document.body,
+        )}
+    </ConfirmMeetingCreationContext>
+  );
+};
+
+export const useConfirmMeetingCreation = () =>
+  use(ConfirmMeetingCreationContext);
+
+export const withConfirmMeetingCreationContext =
+  // Any is expected
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  <T extends ComponentType<any>>(Component: T) =>
+    (props: ComponentProps<T>) => (
+      <ConfirmMeetingCreationProvider>
+        <Component {...props} />
+      </ConfirmMeetingCreationProvider>
+    );

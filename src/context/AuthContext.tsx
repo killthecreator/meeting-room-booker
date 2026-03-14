@@ -1,0 +1,114 @@
+import {
+  createContext,
+  use,
+  useCallback,
+  useEffect,
+  useState,
+  type ReactNode,
+} from "react";
+import type { AuthUser } from "../types/AuthUser.type";
+
+const SESSION_STORAGE_KEY = "auth_session";
+
+type AuthContextValue = {
+  user: AuthUser | null;
+  loading: boolean;
+  error: string | null;
+  login: () => void;
+  logout: () => Promise<void>;
+};
+
+const AuthContext = createContext<AuthContextValue | null>(null);
+
+function getStoredToken(): string | null {
+  try {
+    return sessionStorage.getItem(SESSION_STORAGE_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function setStoredToken(token: string | null) {
+  try {
+    if (token) sessionStorage.setItem(SESSION_STORAGE_KEY, token);
+    else sessionStorage.removeItem(SESSION_STORAGE_KEY);
+  } catch {
+    // ignore
+  }
+}
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchUser = useCallback(async () => {
+    const token = getStoredToken();
+    const res = await fetch("/api/auth/me", {
+      credentials: "include",
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+    if (res.ok) {
+      const data = await res.json();
+      setUser(data);
+      setError(null);
+      if (!token && res.headers.get("set-cookie")) {
+        setStoredToken(null);
+      }
+      return;
+    }
+    setUser(null);
+    setStoredToken(null);
+    if (res.status === 401) {
+      setError(null);
+    } else {
+      setError("Failed to load session");
+    }
+  }, []);
+
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (hash.startsWith("#session=")) {
+      const token = decodeURIComponent(hash.slice("#session=".length));
+      setStoredToken(token);
+      window.history.replaceState(
+        "",
+        document.title,
+        window.location.pathname + window.location.search,
+      );
+    }
+    fetchUser().finally(() => setLoading(false));
+  }, [fetchUser]);
+
+  const login = useCallback(() => {
+    setError(null);
+    window.location.href = "/api/auth/google";
+  }, []);
+
+  const logout = useCallback(async () => {
+    const token = getStoredToken();
+    await fetch("/api/auth/logout", {
+      method: "POST",
+      credentials: "include",
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+    setStoredToken(null);
+    setUser(null);
+  }, []);
+
+  const value: AuthContextValue = {
+    user,
+    loading,
+    error,
+    login,
+    logout,
+  };
+
+  return <AuthContext value={value}>{children}</AuthContext>;
+}
+
+export function useAuth() {
+  const ctx = use(AuthContext);
+  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
+  return ctx;
+}
