@@ -8,7 +8,7 @@ function AppContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-secondary-50">
+      <div className="bg-secondary-50 flex min-h-screen items-center justify-center">
         <p className="text-secondary-500">Loading…</p>
       </div>
     );
@@ -19,22 +19,22 @@ function AppContent() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-secondary-50">
-      <header className="sticky top-0 z-10 flex items-center justify-between gap-4 px-4 py-3 bg-white border-b border-secondary-200 shadow-sm">
-        <h1 className="text-lg font-semibold text-secondary-800">
+    <div className="bg-secondary-50 flex min-h-screen flex-col">
+      <header className="border-secondary-200 sticky top-0 z-10 flex items-center justify-between gap-4 border-b bg-white px-4 py-3 shadow-sm">
+        <h1 className="text-secondary-800 text-lg font-semibold">
           Meeting Room Booker
         </h1>
         <div className="flex items-center gap-3">
-          <span className="text-sm text-secondary-600">{user.name}</span>
+          <span className="text-secondary-600 text-sm">{user.name}</span>
           <button
             onClick={logout}
-            className="text-sm cursor-pointer text-secondary-500 hover:text-secondary-700 underline"
+            className="text-secondary-500 hover:text-secondary-700 cursor-pointer text-sm underline"
           >
             Sign out
           </button>
         </div>
       </header>
-      <main className="flex-1 p-4 flex justify-center">
+      <main className="flex flex-1 justify-center p-4">
         <ConfirmMeetingCreationProvider>
           <MeetingCalendar />
         </ConfirmMeetingCreationProvider>

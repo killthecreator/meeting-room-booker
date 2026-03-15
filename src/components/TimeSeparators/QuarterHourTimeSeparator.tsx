@@ -13,11 +13,11 @@ const QuarterHourTimeSeparator = ({
 export const FirstQuarterHourTimeSeparator = ({
   className,
 }: QuarterHourTimeSeparatorProps) => (
-  <QuarterHourTimeSeparator className={cn("left-[calc(25%-1px)]", className)} />
+  <QuarterHourTimeSeparator className={cn("left-[calc(25%)]", className)} />
 );
 
 export const SecondQuarterHourTimeSeparator = ({
   className,
 }: QuarterHourTimeSeparatorProps) => (
-  <QuarterHourTimeSeparator className={cn("left-[calc(75%-1px)]", className)} />
+  <QuarterHourTimeSeparator className={cn("left-[calc(75%)]", className)} />
 );

@@ -4,26 +4,25 @@ import {
   isNonWorkingHour,
   isWorkBoundaryHour,
 } from "../../lib/constants";
-import { WorkBoundaryLine } from "../TimeSeparators/WorkBoundaryLine";
 import { FirstQuarterHourTimeSeparator } from "../TimeSeparators/QuarterHourTimeSeparator";
 import { HalfHourTimeSeparator } from "../TimeSeparators/HalfHourTimeSeparator";
 import { SecondQuarterHourTimeSeparator } from "../TimeSeparators/QuarterHourTimeSeparator";
 
 export function TimePerDayDistribution() {
   return (
-    <div className="relative w-full h-full flex">
+    <div className="relative flex h-full w-full">
       {HOURS.map((h) => (
         <div
           key={h}
           className={cn(
-            "flex w-full h-full relative border-r border-secondary-100",
+            "border-secondary-400 relative flex w-full border-l",
             isNonWorkingHour(h) && "bg-secondary-100/60",
+            isWorkBoundaryHour(h) && "border-dashed", // dashed line at work boundary
           )}
         >
-          {isWorkBoundaryHour(h) && <WorkBoundaryLine />}
-          <FirstQuarterHourTimeSeparator className="h-full bg-secondary-400 opacity-60" />
-          <HalfHourTimeSeparator className="h-full bg-secondary-400 opacity-60" />
-          <SecondQuarterHourTimeSeparator className="h-full bg-secondary-400 opacity-60" />
+          <FirstQuarterHourTimeSeparator className="bg-secondary-400 h-full opacity-60" />
+          <HalfHourTimeSeparator className="bg-secondary-400 h-full opacity-60" />
+          <SecondQuarterHourTimeSeparator className="bg-secondary-400 h-full opacity-60" />
         </div>
       ))}
     </div>

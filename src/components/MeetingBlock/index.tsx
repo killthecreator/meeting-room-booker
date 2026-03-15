@@ -66,9 +66,9 @@ export function MeetingBlock({
     <div
       ref={blockRef}
       className={cn(
-        "group/meeting-block absolute top-1.5 bottom-1.5 flex items-center gap-1.5 rounded-md px-2 text-primary-950 shadow min-w-[40px] overflow-visible",
+        "group/meeting-block text-primary-950 absolute top-1.5 bottom-1.5 flex min-w-[40px] items-center gap-1.5 overflow-visible rounded-md px-2 shadow",
         isMine
-          ? "bg-primary-500 ring-2 ring-primary-400 ring-inset cursor-grab active:cursor-grabbing"
+          ? "bg-primary-500 ring-primary-400 cursor-grab ring-2 ring-inset active:cursor-grabbing"
           : "bg-primary-600",
       )}
       style={{
@@ -84,14 +84,14 @@ export function MeetingBlock({
       })}
     >
       <MeetingTooltip meeting={meeting} open={showTooltip} />
-      <span className="flex-1 min-w-0 whitespace-nowrap overflow-hidden text-ellipsis text-sm">
+      <span className="min-w-0 flex-1 overflow-hidden text-sm text-ellipsis whitespace-nowrap">
         {meeting.name}
       </span>
 
       {isMine && (
         <>
           <button
-            className="meeting-delete shrink-0 w-[22px] h-[22px] border-0 bg-white/25 rounded text-base leading-none cursor-pointer flex items-center justify-center p-0 hover:bg-white/40"
+            className="meeting-delete flex h-[22px] w-[22px] shrink-0 cursor-pointer items-center justify-center rounded border-0 bg-white/25 p-0 text-base leading-none hover:bg-white/40"
             draggable={false}
             onClick={(e) => {
               e.stopPropagation();

@@ -293,7 +293,7 @@ export const ConfirmMeetingCreationProvider = ({
         createPortal(
           <dialog
             ref={dialogRef}
-            className="fixed backdrop:bg-transparent p-4 w-[300px] bg-white rounded-lg shadow-lg"
+            className="fixed w-[300px] rounded-lg bg-white p-4 shadow-lg backdrop:bg-transparent"
             onClick={handleDialogClick}
             onCancel={handleClose}
             style={
@@ -320,7 +320,7 @@ export const ConfirmMeetingCreationProvider = ({
                   onChange={handleFormChange}
                   value={formValues.name}
                   required
-                  className="border border-gray-200 rounded-md p-1"
+                  className="rounded-md border border-gray-200 p-1"
                   aria-label="Meeting name"
                 />
                 <textarea
@@ -328,12 +328,12 @@ export const ConfirmMeetingCreationProvider = ({
                   placeholder="Meeting Description"
                   onChange={handleFormChange}
                   value={formValues.description}
-                  className="border resize-none border-gray-200 rounded-md p-1"
+                  className="resize-none rounded-md border border-gray-200 p-1"
                   maxLength={300}
                   rows={5}
                 />
                 {overlapError && (
-                  <p className="text-red-600 text-sm" role="alert">
+                  <p className="text-sm text-red-600" role="alert">
                     {overlapError}
                   </p>
                 )}
@@ -349,11 +349,11 @@ export const ConfirmMeetingCreationProvider = ({
                     max={options.maxDate}
                     onChange={handleFormChange}
                     value={formValues.date}
-                    className="border border-gray-200 rounded-md p-1"
+                    className="rounded-md border border-gray-200 p-1"
                     required
                   />
                 </div>
-                <div className="flex gap-2 items-center">
+                <div className="flex items-center gap-2">
                   <input
                     name="start"
                     type="time"
@@ -362,7 +362,7 @@ export const ConfirmMeetingCreationProvider = ({
                     max={formatMinutesAsTime(WORKDAY_END_MIN - 15)}
                     onChange={handleFormChange}
                     value={formValues.start}
-                    className="border border-gray-200 rounded-md p-1 flex-1"
+                    className="flex-1 rounded-md border border-gray-200 p-1"
                     required
                   />
                   <span>–</span>
@@ -381,21 +381,21 @@ export const ConfirmMeetingCreationProvider = ({
                     onChange={handleFormChange}
                     value={formValues.end}
                     required
-                    className="border border-gray-200 rounded-md p-1 flex-1"
+                    className="flex-1 rounded-md border border-gray-200 p-1"
                   />
                 </div>
 
-                <div className="flex gap-2 text-base self-end">
+                <div className="flex gap-2 self-end text-base">
                   <button
                     ref={cancelBtnRef}
-                    className="bg-white text-black hover:bg-gray-100 active:bg-gray-200 px-2 py-1 cursor-pointer rounded-md border border-gray-200"
+                    className="cursor-pointer rounded-md border border-gray-200 bg-white px-2 py-1 text-black hover:bg-gray-100 active:bg-gray-200"
                     onClick={handleClose}
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="bg-primary-500 hover:bg-primary-600 active:bg-primary-700 text-primary-950 px-2 py-1 cursor-pointer rounded-md"
+                    className="bg-primary-500 hover:bg-primary-600 active:bg-primary-700 text-primary-950 cursor-pointer rounded-md px-2 py-1"
                   >
                     Confirm
                   </button>

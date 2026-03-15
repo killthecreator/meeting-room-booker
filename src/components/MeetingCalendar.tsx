@@ -41,7 +41,7 @@ export function MeetingCalendar() {
   }, {});
 
   const today = new Date();
-  const days = getCalendarDays(today, 2);
+  const days = getCalendarDays(today, 5);
   const weekMinDate = formatDateForInput(days[0]);
   const weekMaxDate = formatDateForInput(days[days.length - 1]);
 
@@ -197,11 +197,11 @@ export function MeetingCalendar() {
   );
 
   return (
-    <div className="w-[90vw] max-w-[1500px] overflow-x-auto flex justify-center rounded-xl border border-secondary-200 bg-white shadow-sm">
-      <table className="w-full table-fixed border-collapse rounded-xl overflow-hidden">
-        <colgroup className="flex">
+    <div className="border-secondary-200 relative flex max-h-[90vh] w-[90vw] max-w-[1500px] justify-center overflow-auto rounded-xl border bg-white shadow-sm">
+      <table className="w-full border-collapse overflow-auto rounded-xl">
+        <colgroup className="grid grid-cols-[auto_1fr]">
           <col />
-          <col className="flex-1" />
+          <col />
         </colgroup>
         <CalendarHeader />
         <tbody>

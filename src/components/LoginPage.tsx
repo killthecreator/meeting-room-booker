@@ -31,17 +31,17 @@ export function LoginPage() {
         : error;
 
   return (
-    <div className="min-h-screen min-w-screen flex flex-col items-center justify-center bg-secondary-50 p-4">
-      <div className="w-full max-w-sm rounded-xl border border-secondary-200 bg-white p-8 shadow-sm">
-        <h1 className="text-xl font-semibold text-secondary-800 text-center mb-1">
+    <div className="bg-secondary-50 flex min-h-screen min-w-screen flex-col items-center justify-center p-4">
+      <div className="border-secondary-200 w-full max-w-sm rounded-xl border bg-white p-8 shadow-sm">
+        <h1 className="text-secondary-800 mb-1 text-center text-xl font-semibold">
           Meeting Room Booker
         </h1>
-        <p className="text-secondary-500 text-sm text-center mb-8">
+        <p className="text-secondary-500 mb-8 text-center text-sm">
           Sign in with your Google account
         </p>
         {displayError && (
           <p
-            className="mb-4 text-red-600 text-sm text-center rounded-md bg-red-50 py-2 px-3"
+            className="mb-4 rounded-md bg-red-50 px-3 py-2 text-center text-sm text-red-600"
             role="alert"
           >
             {displayError}
@@ -50,12 +50,12 @@ export function LoginPage() {
         <button
           type="button"
           onClick={login}
-          className="w-full flex items-center justify-center gap-3 h-12 rounded-lg border border-secondary-200 bg-white text-secondary-800 font-medium text-base shadow-sm hover:bg-secondary-50 hover:border-secondary-300 transition-colors"
+          className="border-secondary-200 text-secondary-800 hover:bg-secondary-50 hover:border-secondary-300 flex h-12 w-full items-center justify-center gap-3 rounded-lg border bg-white text-base font-medium shadow-sm transition-colors"
         >
           <img
             src={GOOGLE_LOGO_SVG}
             alt=""
-            className="w-5 h-5"
+            className="h-5 w-5"
             width={20}
             height={20}
           />
