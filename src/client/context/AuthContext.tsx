@@ -6,7 +6,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import type { AuthUser } from "../types/AuthUser.type";
+import type { AuthUser } from "../../types/AuthUser.type";
 
 const SESSION_STORAGE_KEY = "auth_session";
 
@@ -44,7 +44,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const fetchUser = useCallback(async () => {
     const token = getStoredToken();
-    const res = await fetch("/api/auth/me", {
+    const res = await fetch(`/api/auth/me`, {
       credentials: "include",
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     });
@@ -82,12 +82,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = useCallback(() => {
     setError(null);
-    window.location.href = "/api/auth/google";
+    window.location.href = `/api/auth/google`;
   }, []);
 
   const logout = useCallback(async () => {
     const token = getStoredToken();
-    await fetch("/api/auth/logout", {
+    await fetch(`/api/auth/logout`, {
       method: "POST",
       credentials: "include",
       headers: token ? { Authorization: `Bearer ${token}` } : {},

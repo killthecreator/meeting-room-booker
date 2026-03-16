@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import type { Meeting } from "../../types/Meeting.type";
+import type { Meeting } from "../../../types/Meeting.type";
 import {
   minutesFromMidnight,
   WORKDAY_START_MIN,

@@ -4,8 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "drev:server": "tsx --watch --env-file=.env src/server/index.ts",
+    "dev:client": "vite",
+    "dev:server": "tsx --watch --env-file=.env src/server/index.ts",
+    "dev": "npm run dev:client && npm run dev:server",
     "build": "tsc -b && vite build",
     "ngrok": "ngrok http 5173",
     "lint": "eslint .",

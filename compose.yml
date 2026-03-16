@@ -1,0 +1,27 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.express
+    ports:
+      - 3001:3001
+    volumes:
+      - ./src/server:/app
+      - ./src/types:/app/types
+  # react-prod:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   image: docker-reactjs-sample
+  #   ports:
+  #     - 8080:8080
+
+  react-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    ports:
+      - 5173:5173
+    volumes:
+      - ./src/client:/app
+      - ./src/types:/app/types

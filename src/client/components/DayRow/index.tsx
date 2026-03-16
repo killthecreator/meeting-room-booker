@@ -19,8 +19,8 @@ import {
   TIMELINE_MINUTES,
 } from "../../lib/date-utils";
 import { GRID_STEP_MINUTES } from "../../lib/meeting-bounds";
-import type { DragState } from "../../types/DragState.type";
-import type { Meeting } from "../../types/Meeting.type";
+import type { DragState } from "../../../types/DragState.type";
+import type { Meeting } from "../../../types/Meeting.type";
 import { DayTableItem } from "./DayTableItem";
 import { TimePerDayDistribution } from "./TimePerDayDistribution";
 

@@ -1,5 +1,5 @@
 import { formatTime } from "../../lib/date-utils";
-import type { Meeting } from "../../types/Meeting.type";
+import type { Meeting } from "../../../types/Meeting.type";
 import { cn } from "../../lib/cn";
 
 export type MeetingTooltipProps = {
