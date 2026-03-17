@@ -14,13 +14,15 @@ import {
 import {
   minutesFromMidnight,
   dayKey,
+  isWeekend,
   WORKDAY_START_MIN,
   WORKDAY_END_MIN,
   TIMELINE_MINUTES,
-} from "../../lib/date-utils";
-import { GRID_STEP_MINUTES } from "../../lib/meeting-bounds";
+} from "../../../lib/date-utils";
+import { GRID_STEP_MINUTES } from "../../../lib/meeting-bounds";
 import type { DragState } from "../../../types/DragState.type";
 import type { Meeting } from "../../../types/Meeting.type";
+import { cn } from "../../../lib/cn";
 import { DayTableItem } from "./DayTableItem";
 import { TimePerDayDistribution } from "./TimePerDayDistribution";
 
@@ -50,6 +52,7 @@ type DayRowProps = {
   ) => void;
   onMeetingDrop: (date: Date, startMinutes: number, meetingId: string) => void;
   onDraftDrop: (date: Date, startMinutes: number) => void;
+  onTouchDragEnd?: () => void;
 };
 
 export function DayRow({
@@ -63,11 +66,13 @@ export function DayRow({
   onResize,
   onMeetingDrop,
   onDraftDrop,
+  onTouchDragEnd,
 }: DayRowProps) {
   const timelineRef = useRef<HTMLTableRowElement>(null);
   const timelineCellRef = useRef<HTMLTableCellElement>(null);
   const [drag, setDrag] = useState<DragState | null>(null);
   const ignoreNextClickRef = useRef(false);
+  const weekend = isWeekend(date);
 
   useEffect(() => {
     if (!drag) return;
@@ -75,9 +80,13 @@ export function DayRow({
     if (!cell) return;
     if (drag.edge === "move") return;
 
-    const handleMove = (e: globalThis.MouseEvent) => {
+    const getClientX = (e: globalThis.MouseEvent | TouchEvent) =>
+      "touches" in e ? (e.touches[0]?.clientX ?? 0) : e.clientX;
+
+    const handleMove = (e: globalThis.MouseEvent | TouchEvent) => {
+      if ("touches" in e) e.preventDefault();
       const rect = cell.getBoundingClientRect();
-      const x = e.clientX - rect.left;
+      const x = getClientX(e) - rect.left;
       const pct = Math.max(0, Math.min(1, x / rect.width));
       const rawMinutes = WORKDAY_START_MIN + pct * TIMELINE_MINUTES;
       const minutes =
@@ -95,11 +104,20 @@ export function DayRow({
       setDrag(null);
     };
 
+    const handleTouchEnd = (e: TouchEvent) => {
+      if (e.changedTouches[0]) handleUp();
+    };
+
     const controller = new AbortController();
     const { signal } = controller;
 
     window.addEventListener("mousemove", handleMove, { signal });
     window.addEventListener("mouseup", handleUp, { signal });
+    window.addEventListener("touchmove", handleMove, {
+      passive: false,
+      signal,
+    });
+    window.addEventListener("touchend", handleTouchEnd, { signal });
     return () => {
       controller.abort();
     };
@@ -108,9 +126,9 @@ export function DayRow({
   const handleDragOver = useCallback(
     (e: React.DragEvent<HTMLTableRowElement>) => {
       e.preventDefault();
-      e.dataTransfer.dropEffect = "move";
+      e.dataTransfer.dropEffect = weekend ? "none" : "move";
     },
-    [],
+    [weekend],
   );
 
   const dropProcessedRef = useRef(false);
@@ -118,6 +136,7 @@ export function DayRow({
     (e: React.DragEvent<HTMLTableRowElement>) => {
       e.preventDefault();
       e.stopPropagation();
+      if (weekend) return;
       if (dropProcessedRef.current) return;
       const meetingId = e.dataTransfer.getData("meetingId");
       if (!meetingId) return;
@@ -144,10 +163,11 @@ export function DayRow({
         onMeetingDrop(date, clamped, meetingId);
       }
     },
-    [date, onMeetingDrop, onDraftDrop],
+    [date, weekend, onMeetingDrop, onDraftDrop],
   );
 
   const handleTimelineClick = (e: MouseEvent<HTMLTableRowElement>) => {
+    if (weekend) return;
     if (drag) return;
     if (ignoreNextClickRef.current) {
       ignoreNextClickRef.current = false;
@@ -195,7 +215,11 @@ export function DayRow({
   return (
     <tr
       ref={timelineRef}
-      className="group/row relative flex h-14 border-b border-secondary-100 transition-colors duration-200"
+      data-daykey={dayKey(date)}
+      className={cn(
+        "group/row border-secondary-100 relative flex h-14 border-b transition-colors duration-200",
+        weekend && "bg-secondary-100/50 cursor-default",
+      )}
       onClick={handleTimelineClick}
       onDragOver={handleDragOver}
       onDrop={handleDrop}
@@ -204,7 +228,12 @@ export function DayRow({
 
       <td
         ref={timelineCellRef}
-        className="relative min-w-0 flex-1 bg-white/60 p-0 transition-colors duration-200 group-hover/row:bg-primary-50/30"
+        className={cn(
+          "relative min-w-0 flex-1 p-0 transition-colors duration-200",
+          weekend
+            ? "bg-secondary-100/40"
+            : "group-hover/row:bg-primary-50/30 bg-white/60",
+        )}
       >
         <TimePerDayDistribution />
         {meetings.map((m) => (
@@ -215,6 +244,8 @@ export function DayRow({
             onResizeStart={(edge: "left" | "right") =>
               handleResizeStart(m.id, edge)
             }
+            onMeetingDrop={onMeetingDrop}
+            onTouchDragEnd={onTouchDragEnd}
             isResizing={drag !== null && drag.meetingId === m.id}
             isMine={!!(currentUserId && m.ownerId === currentUserId)}
           />

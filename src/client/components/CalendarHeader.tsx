@@ -1,5 +1,5 @@
-import { cn } from "../lib/cn";
-import { HOURS, isNonWorkingHour } from "../lib/constants";
+import { cn } from "../../lib/cn";
+import { HOURS, isNonWorkingHour } from "../../lib/constants";
 import { HalfHourTimeSeparator } from "./TimeSeparators/HalfHourTimeSeparator";
 import {
   FirstQuarterHourTimeSeparator,
@@ -8,9 +8,9 @@ import {
 
 export function CalendarHeader() {
   return (
-    <thead className="sticky top-0 left-0 z-20 border-b border-secondary-200/60 bg-gradient-to-r from-secondary-50 to-white">
+    <thead className="border-secondary-200/60 from-secondary-50 sticky top-0 left-0 z-20 border-b bg-gradient-to-r to-white">
       <tr className="flex h-11 items-stretch">
-        <th className="sticky left-0 w-[132px] min-w-[132px] rounded-tl-2xl bg-gradient-to-r from-secondary-50 to-white" />
+        <th className="from-secondary-50 sticky left-0 w-[132px] min-w-[132px] rounded-tl-2xl bg-gradient-to-r to-white" />
         {HOURS.map((h) => (
           <th
             key={h}
@@ -21,13 +21,13 @@ export function CalendarHeader() {
                 : "text-secondary-500",
             )}
           >
-            <span className="absolute left-0 z-21 -translate-x-1/2 text-[10px] font-semibold tabular-nums tracking-wide uppercase">
+            <span className="absolute left-0 z-21 -translate-x-1/2 text-[10px] font-semibold tracking-wide uppercase tabular-nums">
               {h}:00
             </span>
-            <span className="absolute bottom-0 -left-px z-10 h-2.5 w-px bg-secondary-300" />
-            <HalfHourTimeSeparator className="h-1.5 bg-secondary-300" />
-            <FirstQuarterHourTimeSeparator className="h-1 bg-secondary-200" />
-            <SecondQuarterHourTimeSeparator className="h-1 bg-secondary-200" />
+            <span className="bg-secondary-300 absolute bottom-0 -left-px z-10 h-2.5 w-px" />
+            <HalfHourTimeSeparator className="bg-secondary-300 h-1.5" />
+            <FirstQuarterHourTimeSeparator className="bg-secondary-200 h-1" />
+            <SecondQuarterHourTimeSeparator className="bg-secondary-200 h-1" />
           </th>
         ))}
       </tr>

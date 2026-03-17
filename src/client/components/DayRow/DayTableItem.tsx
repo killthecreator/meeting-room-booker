@@ -1,19 +1,40 @@
-import { formatShortDate, formatWeekday } from "../../lib/date-utils";
+import {
+  formatShortDate,
+  formatWeekday,
+  isWeekend,
+} from "../../../lib/date-utils";
+import { cn } from "../../../lib/cn";
 
 type DayTableItemProps = {
   date: Date;
 };
 export function DayTableItem({ date }: DayTableItemProps) {
+  const weekend = isWeekend(date);
   return (
     <td
-      className="sticky left-0 z-1 flex w-[132px] min-w-[132px] items-center justify-center border-r border-secondary-100 bg-gradient-to-r from-secondary-50/80 to-white/80 py-2 backdrop-blur-sm transition-colors duration-200 group-hover/row:from-primary-50/50 group-hover/row:to-primary-50/20"
+      className={cn(
+        "border-secondary-100 sticky left-0 z-1 flex w-[132px] min-w-[132px] items-center justify-center border-r py-2 backdrop-blur-sm transition-colors duration-200",
+        weekend
+          ? "bg-secondary-100/60 text-secondary-400 cursor-default"
+          : "from-secondary-50/80 group-hover/row:from-primary-50/50 group-hover/row:to-primary-50/20 bg-gradient-to-r to-white/80",
+      )}
       onClick={(e) => e.stopPropagation()}
     >
       <div className="flex flex-col items-center gap-0.5 text-center">
-        <span className="text-secondary-800 text-[13px] font-semibold tracking-tight">
+        <span
+          className={cn(
+            "text-[13px] font-semibold tracking-tight",
+            weekend ? "text-secondary-400" : "text-secondary-800",
+          )}
+        >
           {formatWeekday(date)}
         </span>
-        <span className="text-secondary-400 text-[11px] font-medium">
+        <span
+          className={cn(
+            "text-[11px] font-medium",
+            weekend ? "text-secondary-300" : "text-secondary-400",
+          )}
+        >
           {formatShortDate(date)}
         </span>
       </div>

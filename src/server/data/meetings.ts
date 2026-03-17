@@ -1,5 +1,5 @@
 import type { Meeting } from "../../types/Meeting.type";
-import { getCurrentWeekDays } from "../lib/date-utils";
+import { getCurrentWeekDays } from "../../lib/date-utils";
 
 function atTime(
   day: Date,

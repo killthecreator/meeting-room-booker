@@ -1,19 +1,26 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useCallback } from "react";
 import type { Meeting } from "../../../types/Meeting.type";
 import {
   minutesFromMidnight,
+  parseDateInput,
+  isWeekend,
   WORKDAY_START_MIN,
   WORKDAY_END_MIN,
   TIMELINE_MINUTES,
-} from "../../lib/date-utils";
+} from "../../../lib/date-utils";
 import { MeetingTooltip } from "./MeetingTooltip";
-import { cn } from "../../lib/cn";
+import { cn } from "../../../lib/cn";
 import { Resizer } from "./Resizer";
+
+const DRAG_THRESHOLD_PX = 8;
+const STEP = 15;
 
 export type MeetingBlockProps = {
   meeting: Meeting;
   onDelete: (id: string) => void;
   onResizeStart: (edge: "left" | "right") => void;
+  onMeetingDrop?: (date: Date, startMinutes: number, meetingId: string) => void;
+  onTouchDragEnd?: () => void;
   isResizing?: boolean;
   /** Only show delete button and allow delete when true (meeting created by current user) */
   canDelete?: boolean;
@@ -25,11 +32,20 @@ export function MeetingBlock({
   meeting,
   onDelete,
   onResizeStart,
+  onMeetingDrop,
+  onTouchDragEnd,
   isResizing = false,
   isMine = false,
 }: MeetingBlockProps) {
   const blockRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const touchDragRef = useRef<{
+    touchId: number;
+    offsetX: number;
+    offsetY: number;
+    startX: number;
+    startY: number;
+  } | null>(null);
 
   const showTooltip = !isDragging && !isResizing;
 
@@ -62,25 +78,115 @@ export function MeetingBlock({
     setIsDragging(false);
   };
 
+  const handleTouchStart = useCallback(
+    (e: React.TouchEvent) => {
+      if (!isMine || !onMeetingDrop) return;
+      const touch = e.touches[0];
+      if (!touch) return;
+      const rect = blockRef.current?.getBoundingClientRect();
+      if (!rect) return;
+      const data = {
+        touchId: touch.identifier,
+        offsetX: touch.clientX - rect.left,
+        offsetY: touch.clientY - rect.top,
+        startX: touch.clientX,
+        startY: touch.clientY,
+        didDrag: false,
+      };
+      touchDragRef.current = data;
+
+      const handleMove = (moveE: TouchEvent) => {
+        const t = Array.from(moveE.touches).find(
+          (x) => x.identifier === data.touchId,
+        );
+        if (!t) return;
+        const dx = Math.abs(t.clientX - data.startX);
+        const dy = Math.abs(t.clientY - data.startY);
+        if (dx > DRAG_THRESHOLD_PX || dy > DRAG_THRESHOLD_PX) {
+          data.didDrag = true;
+          moveE.preventDefault();
+          setIsDragging(true);
+        }
+      };
+
+      const handleEnd = (endE: TouchEvent) => {
+        const t = endE.changedTouches[0];
+        if (!t || t.identifier !== data.touchId) {
+          touchDragRef.current = null;
+          setIsDragging(false);
+          cleanup();
+          return;
+        }
+        touchDragRef.current = null;
+        setIsDragging(false);
+        cleanup();
+
+        if (!data.didDrag || !onMeetingDrop) return;
+
+        const el = document.elementFromPoint(t.clientX, t.clientY);
+        if (!el) return;
+
+        const tr = el.closest("tr[data-daykey]");
+        if (!tr || !(tr instanceof HTMLElement)) return;
+
+        const dayKeyVal = tr.getAttribute("data-daykey");
+        if (!dayKeyVal) return;
+
+        const targetDate = parseDateInput(dayKeyVal);
+        if (isWeekend(targetDate)) return;
+
+        const timelineCell = tr.querySelector("td:last-child");
+        if (!timelineCell) return;
+
+        const cellRect = timelineCell.getBoundingClientRect();
+        const blockLeftScreen = t.clientX - data.offsetX;
+        const dropX = blockLeftScreen - cellRect.left;
+        const pct = Math.max(0, Math.min(1, dropX / cellRect.width));
+        const startMinutes = WORKDAY_START_MIN + pct * TIMELINE_MINUTES;
+        const snapped = Math.round(startMinutes / STEP) * STEP;
+        const clamped = Math.max(
+          WORKDAY_START_MIN,
+          Math.min(WORKDAY_END_MIN - 15, snapped),
+        );
+
+        onMeetingDrop(targetDate, clamped, meeting.id);
+        onTouchDragEnd?.();
+      };
+
+      const cleanup = () => {
+        document.removeEventListener("touchmove", handleMove);
+        document.removeEventListener("touchend", handleEnd);
+        document.removeEventListener("touchcancel", handleEnd);
+      };
+
+      document.addEventListener("touchmove", handleMove, { passive: false });
+      document.addEventListener("touchend", handleEnd);
+      document.addEventListener("touchcancel", handleEnd);
+    },
+    [isMine, meeting.id, onMeetingDrop, onTouchDragEnd],
+  );
+
   return (
     <div
       ref={blockRef}
       className={cn(
         "group/meeting-block absolute top-1.5 bottom-1.5 flex min-w-[40px] items-center gap-1.5 overflow-visible rounded-lg px-2.5 transition-shadow duration-200",
         isMine
-          ? "cursor-grab bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-md shadow-primary-500/25 ring-1 ring-inset ring-white/20 hover:shadow-lg hover:shadow-primary-500/30 active:cursor-grabbing"
-          : "bg-gradient-to-r from-secondary-600 to-secondary-700 text-white/90 shadow-sm shadow-secondary-500/15 ring-1 ring-inset ring-white/10",
+          ? "from-primary-500 to-primary-600 shadow-primary-500/25 hover:shadow-primary-500/30 cursor-grab bg-linear-to-r text-white shadow-md ring-1 ring-white/20 ring-inset hover:shadow-lg active:cursor-grabbing"
+          : "from-secondary-600 to-secondary-700 shadow-secondary-500/15 bg-linear-to-r text-white/90 shadow-sm ring-1 ring-white/10 ring-inset",
       )}
       style={{
         left: `${left}%`,
         width: `${width}%`,
         anchorName: `--tooltip-${meeting.id}`,
+        ...(isMine && { touchAction: "none" as const }),
       }}
       onClick={(e) => e.stopPropagation()}
       {...(isMine && {
         draggable: true,
         onDragStart: handleDragStart,
         onDragEnd: handleDragEnd,
+        onTouchStart: handleTouchStart,
       })}
     >
       <MeetingTooltip meeting={meeting} open={showTooltip} />

@@ -20,9 +20,10 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+/** Use localStorage so session persists across reloads and tab closes */
 function getStoredToken(): string | null {
   try {
-    return sessionStorage.getItem(SESSION_STORAGE_KEY);
+    return localStorage.getItem(SESSION_STORAGE_KEY);
   } catch {
     return null;
   }
@@ -30,8 +31,8 @@ function getStoredToken(): string | null {
 
 function setStoredToken(token: string | null) {
   try {
-    if (token) sessionStorage.setItem(SESSION_STORAGE_KEY, token);
-    else sessionStorage.removeItem(SESSION_STORAGE_KEY);
+    if (token) localStorage.setItem(SESSION_STORAGE_KEY, token);
+    else localStorage.removeItem(SESSION_STORAGE_KEY);
   } catch {
     // ignore
   }
@@ -44,7 +45,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const fetchUser = useCallback(async () => {
     const token = getStoredToken();
-    const res = await fetch(`/api/auth/me`, {
+    const res = await fetch("/api/auth/me", {
       credentials: "include",
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     });
@@ -52,9 +53,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const data = await res.json();
       setUser(data);
       setError(null);
-      if (!token && res.headers.get("set-cookie")) {
-        setStoredToken(null);
-      }
       return;
     }
     setUser(null);

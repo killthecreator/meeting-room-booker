@@ -39,15 +39,21 @@ export function getCurrentWeekDays(d: Date): Date[] {
   });
 }
 
-/** Mon–Fri for the given number of weeks starting from the week containing d */
+/** Mon–Sun for the given number of weeks starting from the week containing d */
 export function getCalendarDays(d: Date, weekCount: number = 2): Date[] {
   const monday = getMondayOfWeek(d);
-  const totalDays = weekCount * 5;
+  const totalDays = weekCount * 7;
   return Array.from({ length: totalDays }, (_, i) => {
     const date = new Date(monday);
     date.setDate(monday.getDate() + i);
     return date;
   });
+}
+
+/** Returns true if the date is Saturday (6) or Sunday (0) */
+export function isWeekend(d: Date): boolean {
+  const day = d.getDay();
+  return day === 0 || day === 6;
 }
 
 /** Parse YYYY-MM-DD string to Date (midnight in local time) */
