@@ -197,8 +197,8 @@ export function MeetingCalendar() {
   );
 
   return (
-    <div className="border-secondary-200 relative flex max-h-[90vh] w-[90vw] max-w-[1500px] justify-center overflow-auto rounded-xl border bg-white shadow-sm">
-      <table className="w-full border-collapse overflow-auto rounded-xl">
+    <div className="animate-fade-in relative flex max-h-[90vh] w-[90vw] max-w-[1500px] justify-center overflow-auto rounded-2xl border border-white/60 bg-white/80 shadow-xl shadow-primary-900/5 backdrop-blur-xl">
+      <table className="w-full border-collapse overflow-auto rounded-2xl">
         <colgroup className="grid grid-cols-[auto_1fr]">
           <col />
           <col />

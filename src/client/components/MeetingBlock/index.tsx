@@ -66,10 +66,10 @@ export function MeetingBlock({
     <div
       ref={blockRef}
       className={cn(
-        "group/meeting-block text-primary-950 absolute top-1.5 bottom-1.5 flex min-w-[40px] items-center gap-1.5 overflow-visible rounded-md px-2 shadow",
+        "group/meeting-block absolute top-1.5 bottom-1.5 flex min-w-[40px] items-center gap-1.5 overflow-visible rounded-lg px-2.5 transition-shadow duration-200",
         isMine
-          ? "bg-primary-500 ring-primary-400 cursor-grab ring-2 ring-inset active:cursor-grabbing"
-          : "bg-primary-600",
+          ? "cursor-grab bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-md shadow-primary-500/25 ring-1 ring-inset ring-white/20 hover:shadow-lg hover:shadow-primary-500/30 active:cursor-grabbing"
+          : "bg-gradient-to-r from-secondary-600 to-secondary-700 text-white/90 shadow-sm shadow-secondary-500/15 ring-1 ring-inset ring-white/10",
       )}
       style={{
         left: `${left}%`,
@@ -84,14 +84,14 @@ export function MeetingBlock({
       })}
     >
       <MeetingTooltip meeting={meeting} open={showTooltip} />
-      <span className="min-w-0 flex-1 overflow-hidden text-sm text-ellipsis whitespace-nowrap">
+      <span className="min-w-0 flex-1 overflow-hidden text-[13px] font-medium text-ellipsis whitespace-nowrap">
         {meeting.name}
       </span>
 
       {isMine && (
         <>
           <button
-            className="meeting-delete flex h-[22px] w-[22px] shrink-0 cursor-pointer items-center justify-center rounded border-0 bg-white/25 p-0 text-base leading-none hover:bg-white/40"
+            className="meeting-delete flex h-[22px] w-[22px] shrink-0 cursor-pointer items-center justify-center rounded-md border-0 bg-white/15 p-0 text-sm leading-none text-white/80 transition-colors duration-150 hover:bg-white/30 hover:text-white"
             draggable={false}
             onClick={(e) => {
               e.stopPropagation();

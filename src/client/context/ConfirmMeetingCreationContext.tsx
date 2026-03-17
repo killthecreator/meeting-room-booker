@@ -293,7 +293,7 @@ export const ConfirmMeetingCreationProvider = ({
         createPortal(
           <dialog
             ref={dialogRef}
-            className="fixed w-[300px] rounded-lg bg-white p-4 shadow-lg backdrop:bg-transparent"
+            className="animate-fade-in fixed w-[320px] rounded-2xl border border-white/60 bg-white/90 p-5 shadow-2xl shadow-secondary-900/10 backdrop-blur-xl backdrop:bg-transparent"
             onClick={handleDialogClick}
             onCancel={handleClose}
             style={
@@ -307,12 +307,12 @@ export const ConfirmMeetingCreationProvider = ({
                   }
             }
           >
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-3">
               <div className="title-block">
-                <h2 className="text-lg font-bold">{options.title}</h2>
+                <h2 className="text-base font-semibold tracking-tight text-secondary-900">{options.title}</h2>
               </div>
 
-              <form onSubmit={handleConfirm} className="flex flex-col gap-4">
+              <form onSubmit={handleConfirm} className="flex flex-col gap-3.5">
                 <input
                   name="name"
                   type="text"
@@ -320,7 +320,7 @@ export const ConfirmMeetingCreationProvider = ({
                   onChange={handleFormChange}
                   value={formValues.name}
                   required
-                  className="rounded-md border border-gray-200 p-1"
+                  className="rounded-xl border border-secondary-200 bg-white px-3 py-2 text-sm text-secondary-900 shadow-sm transition-colors duration-150 placeholder:text-secondary-400 focus:border-primary-400 focus:ring-2 focus:ring-primary-100 focus:outline-none"
                   aria-label="Meeting name"
                 />
                 <textarea
@@ -328,17 +328,17 @@ export const ConfirmMeetingCreationProvider = ({
                   placeholder="Meeting Description"
                   onChange={handleFormChange}
                   value={formValues.description}
-                  className="resize-none rounded-md border border-gray-200 p-1"
+                  className="resize-none rounded-xl border border-secondary-200 bg-white px-3 py-2 text-sm text-secondary-900 shadow-sm transition-colors duration-150 placeholder:text-secondary-400 focus:border-primary-400 focus:ring-2 focus:ring-primary-100 focus:outline-none"
                   maxLength={300}
-                  rows={5}
+                  rows={4}
                 />
                 {overlapError && (
-                  <p className="text-sm text-red-600" role="alert">
+                  <p className="rounded-lg bg-red-50 px-3 py-2 text-sm font-medium text-red-600" role="alert">
                     {overlapError}
                   </p>
                 )}
-                <div className="flex flex-col gap-1">
-                  <label className="text-sm font-medium" htmlFor="date">
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-semibold uppercase tracking-wider text-secondary-500" htmlFor="date">
                     Day
                   </label>
                   <input
@@ -349,7 +349,7 @@ export const ConfirmMeetingCreationProvider = ({
                     max={options.maxDate}
                     onChange={handleFormChange}
                     value={formValues.date}
-                    className="rounded-md border border-gray-200 p-1"
+                    className="rounded-xl border border-secondary-200 bg-white px-3 py-2 text-sm text-secondary-900 shadow-sm transition-colors duration-150 focus:border-primary-400 focus:ring-2 focus:ring-primary-100 focus:outline-none"
                     required
                   />
                 </div>
@@ -362,10 +362,10 @@ export const ConfirmMeetingCreationProvider = ({
                     max={formatMinutesAsTime(WORKDAY_END_MIN - 15)}
                     onChange={handleFormChange}
                     value={formValues.start}
-                    className="flex-1 rounded-md border border-gray-200 p-1"
+                    className="flex-1 rounded-xl border border-secondary-200 bg-white px-3 py-2 text-sm text-secondary-900 shadow-sm transition-colors duration-150 focus:border-primary-400 focus:ring-2 focus:ring-primary-100 focus:outline-none"
                     required
                   />
-                  <span>–</span>
+                  <span className="text-secondary-400 text-sm">–</span>
                   <input
                     name="end"
                     type="time"
@@ -381,21 +381,21 @@ export const ConfirmMeetingCreationProvider = ({
                     onChange={handleFormChange}
                     value={formValues.end}
                     required
-                    className="flex-1 rounded-md border border-gray-200 p-1"
+                    className="flex-1 rounded-xl border border-secondary-200 bg-white px-3 py-2 text-sm text-secondary-900 shadow-sm transition-colors duration-150 focus:border-primary-400 focus:ring-2 focus:ring-primary-100 focus:outline-none"
                   />
                 </div>
 
-                <div className="flex gap-2 self-end text-base">
+                <div className="flex gap-2 self-end pt-1">
                   <button
                     ref={cancelBtnRef}
-                    className="cursor-pointer rounded-md border border-gray-200 bg-white px-2 py-1 text-black hover:bg-gray-100 active:bg-gray-200"
+                    className="cursor-pointer rounded-xl border border-secondary-200 bg-white px-4 py-2 text-sm font-medium text-secondary-700 shadow-sm transition-all duration-200 hover:border-secondary-300 hover:bg-secondary-50 active:scale-[0.97]"
                     onClick={handleClose}
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="bg-primary-500 hover:bg-primary-600 active:bg-primary-700 text-primary-950 cursor-pointer rounded-md px-2 py-1"
+                    className="cursor-pointer rounded-xl bg-gradient-to-r from-primary-500 to-primary-600 px-4 py-2 text-sm font-medium text-white shadow-md shadow-primary-500/20 transition-all duration-200 hover:from-primary-600 hover:to-primary-700 hover:shadow-lg hover:shadow-primary-500/25 active:scale-[0.97]"
                   >
                     Confirm
                   </button>

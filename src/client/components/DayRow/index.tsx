@@ -195,7 +195,7 @@ export function DayRow({
   return (
     <tr
       ref={timelineRef}
-      className="group/row border-secondary-200 relative flex h-14 border-b transition-colors"
+      className="group/row relative flex h-14 border-b border-secondary-100 transition-colors duration-200"
       onClick={handleTimelineClick}
       onDragOver={handleDragOver}
       onDrop={handleDrop}
@@ -204,7 +204,7 @@ export function DayRow({
 
       <td
         ref={timelineCellRef}
-        className="group-hover/row:bg-secondary-100 relative min-w-0 flex-1 bg-white p-0 transition-colors"
+        className="relative min-w-0 flex-1 bg-white/60 p-0 transition-colors duration-200 group-hover/row:bg-primary-50/30"
       >
         <TimePerDayDistribution />
         {meetings.map((m) => (

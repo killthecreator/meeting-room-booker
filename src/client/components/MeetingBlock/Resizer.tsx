@@ -12,10 +12,10 @@ export function Resizer<T extends "left" | "right">({
   return (
     <div
       className={cn(
-        "resize-handle absolute inset-y-0 z-2 w-2 cursor-ew-resize hover:bg-white/20",
+        "resize-handle absolute inset-y-0 z-2 w-2.5 cursor-ew-resize transition-colors duration-150 hover:bg-white/20",
         {
-          "left-0 rounded-l-md": edge === "left",
-          "right-0 rounded-r-md": edge === "right",
+          "left-0 rounded-l-lg": edge === "left",
+          "right-0 rounded-r-lg": edge === "right",
         },
       )}
       onMouseDown={(e) => {
