@@ -1,27 +1,31 @@
 services:
   backend:
     build:
-      context: .
-      dockerfile: Dockerfile.express
+      dockerfile: dockerfiles/Dockerfile.backend
+      target: dev
     ports:
       - 3001:3001
     volumes:
-      - ./src/server:/app
-      - ./src/types:/app/types
-  # react-prod:
-  #   build:
-  #     context: .
-  #     dockerfile: Dockerfile
-  #   image: docker-reactjs-sample
-  #   ports:
-  #     - 8080:8080
+      - ./src/server/:/app/
+      - ./src/types/:/app/types/
+      - ./package.json:/app/package.json
+      - ./package-lock.json:/app/package-lock.json
 
-  react-dev:
+  frontend:
     build:
-      context: .
-      dockerfile: Dockerfile.dev
+      dockerfile: dockerfiles/Dockerfile.frontend
+      target: dev
+    depends_on:
+      - backend
     ports:
       - 5173:5173
     volumes:
-      - ./src/client:/app
-      - ./src/types:/app/types
+      - ./src/client/:/app/
+      - ./src/types/:/app/types/
+      - ./package.json:/app/package.json
+      - ./package-lock.json:/app/package-lock.json
+      - ./node_modules/:/app/node_modules/
+      - ./vite.config.ts:/app/vite.config.ts
+      - ./tsconfig.json:/app/tsconfig.json
+      - ./tsconfig.app.json:/app/tsconfig.app.json
+      - ./tsconfig.node.json:/app/tsconfig.node.json

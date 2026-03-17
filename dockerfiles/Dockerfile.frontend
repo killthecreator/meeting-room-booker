@@ -1,21 +1,34 @@
-# =========================================
-# Stage 1: Build the React.js Application
-# =========================================
+# syntax = docker/dockerfile:1
 
-# Use a lightweight Node.js image for building (customizable via ARG)
-FROM dhi.io/node:24-alpine3.22-dev AS builder
+ARG NODE_VERSION=25-alpine
 
-# Set the working directory inside the container
+FROM node:${NODE_VERSION} AS base
+
 WORKDIR /app
 
-# Copy package-related files first to leverage Docker's caching mechanism
-COPY package.json package-lock.json* ./
+# Environment variables
+# ......
 
-# Install project dependencies using npm ci (ensures a clean, reproducible install)
-RUN --mount=type=cache,target=/root/.npm npm ci
+FROM node:${NODE_VERSION} AS deps
 
-# Copy the rest of the application source code into the container
-COPY . .
+WORKDIR /app
+
+# Install dependencies
+COPY package.json package-lock.json /app/
+RUN --mount=type=secret,id=npmrc,target=/root/.npmrc npm ci
+
+# Dev stage
+FROM base AS dev
+
+# Copy files from deps
+COPY --from=deps /app/node_modules/ /app/node_modules/
+
+CMD ["npm", "run", "dev:client"]
+
+
+# Build stage
+FROM base AS builder
+
 
 # Build the React.js application (outputs to /app/dist)
 RUN npm run build
