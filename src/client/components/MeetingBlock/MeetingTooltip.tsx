@@ -1,9 +1,9 @@
 import { formatTime } from "../../../lib/date-utils";
-import type { Meeting } from "../../../types/Meeting.type";
+import type { MeetingDTO } from "../../../types/Meeting.type";
 import { cn } from "../../../lib/cn";
 
 export type MeetingTooltipProps = {
-  meeting: Meeting;
+  meeting: MeetingDTO;
   open: boolean;
 };
 
@@ -40,12 +40,13 @@ export function MeetingTooltip({ meeting, open }: MeetingTooltipProps) {
             d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
           />
         </svg>
-        {formatTime(meeting.start)} – {formatTime(meeting.end)}
+        {formatTime(new Date(meeting.start))} –{" "}
+        {formatTime(new Date(meeting.end))}
       </div>
       <div className="mt-2.5 flex items-center gap-2 border-t border-white/10 pt-2.5">
-        {!!meeting.ownerPicture && (
+        {!!meeting.owner.picture && (
           <img
-            src={meeting.ownerPicture}
+            src={meeting.owner.picture}
             alt="owner picture"
             className="h-6 w-6 shrink-0 rounded-full object-cover ring-1 ring-white/20"
             width={24}
@@ -54,15 +55,15 @@ export function MeetingTooltip({ meeting, open }: MeetingTooltipProps) {
         )}
         <div className="min-w-0 flex-1">
           <span className="text-secondary-300 font-medium">
-            {meeting.owner}
+            {meeting.owner.name}
           </span>
-          {!!meeting.ownerEmail && (
+          {!!meeting.owner.email && (
             <span className="mt-0.5 block">
               <a
-                href={`mailto:${meeting.ownerEmail}`}
+                href={`mailto:${meeting.owner.email}`}
                 className="text-primary-300 decoration-primary-300/30 hover:text-primary-200 hover:decoration-primary-200/50 block truncate underline transition-colors"
               >
-                {meeting.ownerEmail}
+                {meeting.owner.email}
               </a>
             </span>
           )}

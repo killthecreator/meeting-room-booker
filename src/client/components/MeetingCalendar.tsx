@@ -19,7 +19,7 @@ import { DayRow, type DraftMeeting } from "./DayRow";
 import { useConfirmMeetingCreation } from "../context/ConfirmMeetingCreationContext";
 import { useAuth } from "../context/AuthContext";
 import { useMeeting } from "../context/MeetingContext";
-import type { Meeting } from "../../types/Meeting.type";
+import type { MeetingDTO } from "../../types/Meeting.type";
 
 /** Step in minutes for the timeline (15 minutes) */
 const STEP = 15;
@@ -31,17 +31,20 @@ export function MeetingCalendar() {
 
   const { confirmMeetingCreation, updateCreateFormDraft } =
     useConfirmMeetingCreation();
-  const currentUserId = authUser?.sub ?? null;
+  const currentUserId = authUser?.id;
   const [draftMeeting, setDraftMeeting] = useState<DraftMeeting | null>(null);
   const ghostAnchorRef = useRef<HTMLDivElement>(null);
   const touchDragEndRef = useRef(false);
 
-  const meetingsByDay = meetings.reduce<Record<string, Meeting[]>>((acc, m) => {
-    const k = dayKey(m.start);
-    if (!acc[k]) acc[k] = [];
-    acc[k].push(m);
-    return acc;
-  }, {});
+  const meetingsByDay = meetings.reduce<Record<string, MeetingDTO[]>>(
+    (acc, m) => {
+      const k = dayKey(new Date(m.start));
+      if (!acc[k]) acc[k] = [];
+      acc[k].push(m);
+      return acc;
+    },
+    {},
+  );
 
   const today = new Date();
   const days = getCalendarDays(today, 5);
@@ -92,12 +95,9 @@ export function MeetingCalendar() {
       await createMeeting({
         name: confirmRes.name,
         description: confirmRes.description,
-        owner: authUser?.name ?? "Me",
-        ownerId: authUser?.sub,
-        ownerEmail: authUser?.email,
-        ownerPicture: authUser?.picture,
-        start: confirmRes.start,
-        end: confirmRes.end,
+        owner: authUser!,
+        start: confirmRes.start.toISOString(),
+        end: confirmRes.end.toISOString(),
       });
     },
     [
@@ -144,37 +144,42 @@ export function MeetingCalendar() {
       newEndMin: number | null,
     ) => {
       const meeting = meetings.find((m) => m.id === meetingId);
-      if (!meeting || meeting.ownerId !== currentUserId) return;
-      const k = dayKey(meeting.start);
+      if (!meeting || meeting.owner.id !== currentUserId) return;
+      const startDate = new Date(meeting.start);
+      const endDate = new Date(meeting.end);
+      const k = dayKey(startDate);
       const others = meetings.filter(
-        (m) => dayKey(m.start) === k && m.id !== meetingId,
+        (m) => dayKey(new Date(m.start)) === k && m.id !== meetingId,
       );
-      const startMin = minutesFromMidnight(meeting.start);
-      const endMin = minutesFromMidnight(meeting.end);
+      const startMin = minutesFromMidnight(startDate);
+      const endMin = minutesFromMidnight(endDate);
 
-      let start = meeting.start;
-      let end = meeting.end;
+      let start = startDate;
+      let end = endDate;
 
       if (newStartMin !== null) {
         const [minStart, maxStart] = getStartBounds(endMin, others, STEP);
         const snapped = Math.round(newStartMin / STEP) * STEP;
         const clamped = Math.max(minStart, Math.min(maxStart, snapped));
-        start = setMinutesFromMidnight(meeting.start, clamped);
+        start = setMinutesFromMidnight(startDate, clamped);
       }
       if (newEndMin !== null) {
         const [minEnd, maxEnd] = getEndBounds(startMin, others, STEP);
         const snapped = Math.round(newEndMin / STEP) * STEP;
         const clamped = Math.max(minEnd, Math.min(maxEnd, snapped));
-        end = setMinutesFromMidnight(meeting.end, clamped);
+        end = setMinutesFromMidnight(endDate, clamped);
       }
 
       if (
-        start.getTime() === meeting.start.getTime() &&
-        end.getTime() === meeting.end.getTime()
+        start.getTime() === startDate.getTime() &&
+        end.getTime() === endDate.getTime()
       )
         return;
 
-      updateMeeting(meetingId, { start, end });
+      updateMeeting(meetingId, {
+        start: start.toISOString(),
+        end: end.toISOString(),
+      });
     },
     [currentUserId, meetings, updateMeeting],
   );
@@ -182,23 +187,28 @@ export function MeetingCalendar() {
   const handleMeetingDrop = useCallback(
     (date: Date, startMinutes: number, meetingId: string) => {
       const meeting = meetings.find((m) => m.id === meetingId);
-      if (!meeting || meeting.ownerId !== currentUserId) return;
+      if (!meeting || meeting.owner.id !== currentUserId) return;
+      const startDate = new Date(meeting.start);
+      const endDate = new Date(meeting.end);
       const duration =
-        minutesFromMidnight(meeting.end) - minutesFromMidnight(meeting.start);
+        minutesFromMidnight(endDate) - minutesFromMidnight(startDate);
       const targetDayKey = dayKey(date);
       const othersOnTargetDay = meetings.filter(
-        (m) => dayKey(m.start) === targetDayKey && m.id !== meetingId,
+        (m) => dayKey(new Date(m.start)) === targetDayKey && m.id !== meetingId,
       );
       const snapped = Math.round(startMinutes / STEP) * STEP;
       const clampedStart = clampMoveStart(snapped, duration, othersOnTargetDay);
       const start = setMinutesFromMidnight(date, clampedStart);
       const end = setMinutesFromMidnight(date, clampedStart + duration);
       if (
-        start.getTime() === meeting.start.getTime() &&
-        end.getTime() === meeting.end.getTime()
+        start.getTime() === startDate.getTime() &&
+        end.getTime() === endDate.getTime()
       )
         return;
-      updateMeeting(meetingId, { start, end });
+      updateMeeting(meetingId, {
+        start: start.toISOString(),
+        end: end.toISOString(),
+      });
     },
     [currentUserId, meetings, updateMeeting],
   );

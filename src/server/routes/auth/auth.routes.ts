@@ -7,7 +7,7 @@
  */
 import { Router, type Request } from "express";
 import crypto from "crypto";
-import type { AuthUser } from "../types/AuthUser.type";
+import { googleAuthSchema } from "../../../schemas/authUser";
 
 const router = Router();
 
@@ -146,13 +146,7 @@ router.get("/google/callback", async (req, res) => {
     return res.redirect(FRONTEND_ORIGIN + "?error=domain_not_allowed");
   }
 
-  const user = {
-    sub: payload.sub,
-    name: payload.name,
-    email: payload.email,
-    picture: payload.picture,
-    ...(domain && { domain }),
-  } as AuthUser;
+  const user = googleAuthSchema.parse(payload);
 
   const sessionToken = signSession(user);
   res.cookie("session", sessionToken, {

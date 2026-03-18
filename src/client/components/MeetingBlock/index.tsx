@@ -1,5 +1,5 @@
 import { useRef, useState, useCallback } from "react";
-import type { Meeting } from "../../../types/Meeting.type";
+import type { MeetingDTO } from "../../../types/Meeting.type";
 import {
   minutesFromMidnight,
   parseDateInput,
@@ -16,7 +16,7 @@ const DRAG_THRESHOLD_PX = 8;
 const STEP = 15;
 
 export type MeetingBlockProps = {
-  meeting: Meeting;
+  meeting: MeetingDTO;
   onDelete: (id: string) => void;
   onResizeStart: (edge: "left" | "right") => void;
   onMeetingDrop?: (date: Date, startMinutes: number, meetingId: string) => void;
@@ -49,8 +49,8 @@ export function MeetingBlock({
 
   const showTooltip = !isDragging && !isResizing;
 
-  const startMin = minutesFromMidnight(meeting.start);
-  const endMin = minutesFromMidnight(meeting.end);
+  const startMin = minutesFromMidnight(new Date(meeting.start));
+  const endMin = minutesFromMidnight(new Date(meeting.end));
   const visibleStart = Math.max(startMin, WORKDAY_START_MIN);
   const visibleEnd = Math.min(endMin, WORKDAY_END_MIN);
   const left = ((visibleStart - WORKDAY_START_MIN) / TIMELINE_MINUTES) * 100;

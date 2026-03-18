@@ -6,104 +6,69 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import type { Meeting } from "../../types/Meeting.type";
-
-type CreateMeetingInput = Omit<Meeting, "id">;
+import type {
+  CreateMeetingDTO,
+  MeetingDTO,
+  UpdateMeetingDTO,
+} from "../../types/Meeting.type";
+import axios from "axios";
+import { meetingSchema } from "../../schemas/meeting";
 
 type MeetingContextValue = {
-  meetings: Meeting[];
+  meetings: MeetingDTO[];
   loading: boolean;
-  createMeeting: (meeting: CreateMeetingInput) => Promise<Meeting>;
-  getMeetings: () => Promise<Meeting[]>;
+  createMeeting: (meeting: CreateMeetingDTO) => Promise<MeetingDTO>;
+  getMeetings: () => Promise<MeetingDTO[]>;
   deleteMeeting: (id: string) => Promise<void>;
-  updateMeeting: (
-    id: string,
-    updates: Partial<Pick<Meeting, "start" | "end">>,
-  ) => Promise<void>;
+  updateMeeting: (id: string, updates: UpdateMeetingDTO) => Promise<void>;
 };
 
 const MeetingContext = createContext<MeetingContextValue | null>(null);
 
-function parseMeeting(raw: Record<string, unknown>): Meeting {
-  return {
-    id: String(raw.id),
-    name: String(raw.name),
-    description: String(raw.description ?? ""),
-    owner: String(raw.owner),
-    ownerId: raw.ownerId ? String(raw.ownerId) : undefined,
-    ownerEmail: raw.ownerEmail ? String(raw.ownerEmail) : undefined,
-    ownerPicture: raw.ownerPicture ? String(raw.ownerPicture) : undefined,
-    start: new Date(raw.start as string),
-    end: new Date(raw.end as string),
-  };
-}
-
 export function MeetingProvider({ children }: { children: ReactNode }) {
-  const [meetings, setMeetings] = useState<Meeting[]>([]);
+  const [meetings, setMeetings] = useState<MeetingDTO[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const getMeetings = useCallback(async (): Promise<Meeting[]> => {
-    const res = await fetch("/api/meetings", { credentials: "include" });
-    if (!res.ok) return [];
-    const data = (await res.json()) as Record<string, unknown>[];
-    const parsed = data.map((row) => parseMeeting(row));
+  const getMeetings = useCallback(async (): Promise<MeetingDTO[]> => {
+    const res = await axios.get("/api/meetings", { withCredentials: true });
+
+    const parsed = meetingSchema.array().parse(res.data);
     setMeetings(parsed);
     return parsed;
   }, []);
 
   const createMeeting = useCallback(
-    async (input: CreateMeetingInput): Promise<Meeting> => {
-      const id = String(Date.now());
-      const body = {
-        id,
-        ...input,
-        start: input.start.toISOString(),
-        end: input.end.toISOString(),
-      };
-      const res = await fetch("/api/meetings", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify(body),
+    async (input: CreateMeetingDTO): Promise<MeetingDTO> => {
+      const res = await axios.post<MeetingDTO>("/api/meetings", input, {
+        withCredentials: true,
       });
-      if (!res.ok) throw new Error("Failed to create meeting");
-      const meeting: Meeting = { ...input, id };
-      setMeetings((prev) => prev.concat(meeting));
-      return meeting;
+
+      setMeetings((prev) => prev.concat(res.data));
+      return res.data;
     },
     [],
   );
 
   const deleteMeeting = useCallback(async (id: string): Promise<void> => {
-    const res = await fetch(`/api/meetings/${id}`, {
-      method: "DELETE",
-      credentials: "include",
+    await axios.delete(`/api/meetings/${id}`, {
+      withCredentials: true,
     });
-    if (!res.ok) throw new Error("Failed to delete meeting");
+
     setMeetings((prev) => prev.filter((m) => m.id !== id));
   }, []);
 
   const updateMeeting = useCallback(
-    async (
-      id: string,
-      updates: Partial<Pick<Meeting, "start" | "end">>,
-    ): Promise<void> => {
+    async (id: string, updates: UpdateMeetingDTO): Promise<void> => {
       const body: Record<string, string> = {};
-      if (updates.start) body.start = updates.start.toISOString();
-      if (updates.end) body.end = updates.end.toISOString();
+      if (updates.start) body.start = updates.start;
+      if (updates.end) body.end = updates.end;
       if (Object.keys(body).length === 0) return;
 
-      const res = await fetch(`/api/meetings/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify(body),
+      const res = await axios.patch<MeetingDTO>(`/api/meetings/${id}`, body, {
+        withCredentials: true,
       });
-      if (!res.ok) throw new Error("Failed to update meeting");
-      const updated = (await res.json()) as Record<string, unknown>;
-      setMeetings((prev) =>
-        prev.map((m) => (m.id === id ? parseMeeting(updated) : m)),
-      );
+
+      setMeetings((prev) => prev.map((m) => (m.id === id ? res.data : m)));
     },
     [],
   );

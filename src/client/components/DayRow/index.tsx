@@ -21,7 +21,7 @@ import {
 } from "../../../lib/date-utils";
 import { GRID_STEP_MINUTES } from "../../../lib/meeting-bounds";
 import type { DragState } from "../../../types/DragState.type";
-import type { Meeting } from "../../../types/Meeting.type";
+import type { MeetingDTO } from "../../../types/Meeting.type";
 import { cn } from "../../../lib/cn";
 import { DayTableItem } from "./DayTableItem";
 import { TimePerDayDistribution } from "./TimePerDayDistribution";
@@ -38,7 +38,7 @@ export type DraftMeeting = {
 
 type DayRowProps = {
   date: Date;
-  meetings: Meeting[];
+  meetings: MeetingDTO[];
   draftMeeting: DraftMeeting | null;
   ghostAnchorRef?: RefObject<HTMLDivElement | null>;
   /** Current user id (e.g. Google sub) for canDelete / isMine */
@@ -205,8 +205,8 @@ export function DayRow({
       setDrag({
         meetingId,
         edge,
-        startMin: minutesFromMidnight(m.start),
-        endMin: minutesFromMidnight(m.end),
+        startMin: minutesFromMidnight(new Date(m.start)),
+        endMin: minutesFromMidnight(new Date(m.end)),
       });
     },
     [meetings, draftMeeting],
@@ -247,7 +247,7 @@ export function DayRow({
             onMeetingDrop={onMeetingDrop}
             onTouchDragEnd={onTouchDragEnd}
             isResizing={drag !== null && drag.meetingId === m.id}
-            isMine={!!(currentUserId && m.ownerId === currentUserId)}
+            isMine={!!(currentUserId && m.owner.id === currentUserId)}
           />
         ))}
         {draftMeeting && dayKey(draftMeeting.date) === dayKey(date) && (

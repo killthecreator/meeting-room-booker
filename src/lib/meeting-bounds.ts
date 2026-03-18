@@ -16,14 +16,14 @@ function snapToStep(value: number, step: number): number {
 /** Bounds for changing the start (left edge): [minStart, maxStart] in minutes from midnight. */
 export function getStartBounds(
   endMin: number,
-  others: { start: Date; end: Date }[],
+  others: { start: string; end: string }[],
   step: number = GRID_STEP_MINUTES,
 ): [number, number] {
   const rightBound = endMin - MIN_DURATION_MINUTES;
   let minStart = WORKDAY_START_MIN;
   for (const o of others) {
-    const oStart = minutesFromMidnight(o.start);
-    const oEnd = minutesFromMidnight(o.end);
+    const oStart = minutesFromMidnight(new Date(o.start));
+    const oEnd = minutesFromMidnight(new Date(o.end));
     if (oEnd <= endMin && endMin > oStart) minStart = Math.max(minStart, oEnd);
   }
   const maxStart = Math.max(minStart, rightBound);
@@ -35,14 +35,14 @@ export function getStartBounds(
 /** Bounds for changing the end (right edge): [minEnd, maxEnd]. */
 export function getEndBounds(
   startMin: number,
-  others: { start: Date; end: Date }[],
+  others: { start: string; end: string }[],
   step: number = GRID_STEP_MINUTES,
 ): [number, number] {
   const leftBound = startMin + MIN_DURATION_MINUTES;
   let maxEnd = WORKDAY_END_MIN;
   for (const o of others) {
-    const oStart = minutesFromMidnight(o.start);
-    const oEnd = minutesFromMidnight(o.end);
+    const oStart = minutesFromMidnight(new Date(o.start));
+    const oEnd = minutesFromMidnight(new Date(o.end));
     if (oEnd > startMin) maxEnd = Math.min(maxEnd, oStart);
   }
   const minEndSnap = Math.ceil(leftBound / step) * step;
@@ -54,7 +54,7 @@ export function getEndBounds(
 export function clampMoveStart(
   proposedStart: number,
   duration: number,
-  others: { start: Date; end: Date }[],
+  others: { start: string; end: string }[],
   step: number = GRID_STEP_MINUTES,
 ): number {
   let s = snapToStep(proposedStart, step);
@@ -66,8 +66,8 @@ export function clampMoveStart(
     iterations++;
     changed = false;
     for (const o of others) {
-      const oStart = minutesFromMidnight(o.start);
-      const oEnd = minutesFromMidnight(o.end);
+      const oStart = minutesFromMidnight(new Date(o.start));
+      const oEnd = minutesFromMidnight(new Date(o.end));
       if (s < oEnd && s + duration > oStart) {
         if (s < oStart) {
           s = Math.floor((oStart - duration) / step) * step;
