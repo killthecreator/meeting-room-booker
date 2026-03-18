@@ -14,7 +14,7 @@ import type {
 import axios from "axios";
 import { meetingSchema } from "../../schemas/meeting";
 
-type MeetingContextValue = {
+type MeetingsContextValue = {
   meetings: MeetingDTO[];
   loading: boolean;
   createMeeting: (meeting: CreateMeetingDTO) => Promise<MeetingDTO>;
@@ -23,9 +23,9 @@ type MeetingContextValue = {
   updateMeeting: (id: string, updates: UpdateMeetingDTO) => Promise<void>;
 };
 
-const MeetingContext = createContext<MeetingContextValue | null>(null);
+const MeetingsContext = createContext<MeetingsContextValue | null>(null);
 
-export function MeetingProvider({ children }: { children: ReactNode }) {
+export function MeetingsProvider({ children }: { children: ReactNode }) {
   const [meetings, setMeetings] = useState<MeetingDTO[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -81,7 +81,7 @@ export function MeetingProvider({ children }: { children: ReactNode }) {
     })();
   }, [getMeetings]);
 
-  const value: MeetingContextValue = {
+  const value: MeetingsContextValue = {
     meetings,
     loading,
     createMeeting,
@@ -90,11 +90,11 @@ export function MeetingProvider({ children }: { children: ReactNode }) {
     updateMeeting,
   };
 
-  return <MeetingContext value={value}>{children}</MeetingContext>;
+  return <MeetingsContext value={value}>{children}</MeetingsContext>;
 }
 
-export function useMeeting() {
-  const ctx = use(MeetingContext);
+export function useMeetings() {
+  const ctx = use(MeetingsContext);
   if (!ctx) throw new Error("useMeeting must be used within MeetingProvider");
   return ctx;
 }

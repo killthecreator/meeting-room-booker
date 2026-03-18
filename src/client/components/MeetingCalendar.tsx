@@ -18,7 +18,7 @@ import { CalendarHeader } from "./CalendarHeader";
 import { DayRow, type DraftMeeting } from "./DayRow";
 import { useConfirmMeetingCreation } from "../context/ConfirmMeetingCreationContext";
 import { useAuth } from "../context/AuthContext";
-import { useMeeting } from "../context/MeetingContext";
+import { useMeetings } from "../context/MeetingsContext";
 import type { MeetingDTO } from "../../types/Meeting.type";
 
 /** Step in minutes for the timeline (15 minutes) */
@@ -27,7 +27,7 @@ const STEP = 15;
 export function MeetingCalendar() {
   const { user: authUser } = useAuth();
   const { meetings, createMeeting, deleteMeeting, updateMeeting } =
-    useMeeting();
+    useMeetings();
 
   const { confirmMeetingCreation, updateCreateFormDraft } =
     useConfirmMeetingCreation();
@@ -47,7 +47,7 @@ export function MeetingCalendar() {
   );
 
   const today = new Date();
-  const days = getCalendarDays(today, 5);
+  const days = getCalendarDays(today);
   const weekMinDate = formatDateForInput(days[0]);
   const weekMaxDate = formatDateForInput(days[days.length - 1]);
 
@@ -215,7 +215,7 @@ export function MeetingCalendar() {
 
   return (
     <div className="animate-fade-in shadow-primary-900/5 relative flex max-h-[90vh] w-[90vw] max-w-[1500px] justify-center overflow-auto rounded-2xl border border-white/60 bg-white/80 shadow-xl backdrop-blur-xl">
-      <table className="w-full border-collapse overflow-auto rounded-2xl">
+      <table className="block w-full border-collapse overflow-auto rounded-2xl">
         <colgroup className="grid grid-cols-[auto_1fr]">
           <col />
           <col />

@@ -60,7 +60,8 @@ export function isWeekend(d: Date): boolean {
 export function getNextWeekday(d: Date): Date {
   const out = new Date(d);
   const day = out.getDay();
-  if (day === 0) out.setDate(out.getDate() + 1); // Sun -> Mon
+  if (day === 0)
+    out.setDate(out.getDate() + 1); // Sun -> Mon
   else if (day === 6) out.setDate(out.getDate() + 2); // Sat -> Mon
   return out;
 }
@@ -69,7 +70,8 @@ export function getNextWeekday(d: Date): Date {
 export function getPreviousWeekday(d: Date): Date {
   const out = new Date(d);
   const day = out.getDay();
-  if (day === 0) out.setDate(out.getDate() - 2); // Sun -> Fri
+  if (day === 0)
+    out.setDate(out.getDate() - 2); // Sun -> Fri
   else if (day === 6) out.setDate(out.getDate() - 1); // Sat -> Fri
   return out;
 }
