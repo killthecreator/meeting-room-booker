@@ -4,11 +4,13 @@ import meetingRouter from "./routes/meeting/meeting.routes";
 import authRouter from "./routes/auth/auth.routes";
 import { ipCheckMiddleware } from "./middlewares/ipCheckMiddleware";
 import morgan from "morgan";
+import { limiter } from "./middlewares/rateLimitter";
 
 const app = express();
 app.set("trust proxy", 1);
 app.use(cookieParser());
 app.use(express.json());
+app.use(limiter);
 app.use(express.urlencoded({ extended: true }));
 app.use(ipCheckMiddleware);
 
