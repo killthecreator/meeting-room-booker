@@ -3,6 +3,7 @@ import cookieParser from "cookie-parser";
 import meetingRouter from "./routes/meeting/meeting.routes";
 import authRouter from "./routes/auth/auth.routes";
 import { ipCheckMiddleware } from "./middlewares/ipCheckMiddleware";
+import morgan from "morgan";
 
 const app = express();
 app.set("trust proxy", 1);
@@ -12,6 +13,8 @@ app.use(express.urlencoded({ extended: true }));
 app.use(ipCheckMiddleware);
 
 app.use(express.static("dist", { index: false }));
+
+app.use(morgan("tiny"));
 app.use("/api/auth", authRouter);
 app.use("/api/meetings", meetingRouter);
 

@@ -69,27 +69,13 @@ export const meetingsService = {
   },
 
   update(id: string, data: UpdateMeetingDTO) {
-    const { name, description, start, end } = data;
-
     const updates: string[] = [];
     const values: unknown[] = [];
 
-    if (name !== undefined) {
-      updates.push("name = ?");
-      values.push(name);
-    }
-    if (description !== undefined) {
-      updates.push("description = ?");
-      values.push(description);
-    }
-    if (start !== undefined) {
-      updates.push("start = ?");
-      values.push(start);
-    }
-    if (end !== undefined) {
-      updates.push("end = ?");
-      values.push(end);
-    }
+    Object.entries(data).forEach(([key, value]) => {
+      updates.push(`${key} = ?`);
+      values.push(value);
+    });
 
     values.push(id);
 
