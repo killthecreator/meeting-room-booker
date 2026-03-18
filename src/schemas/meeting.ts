@@ -13,5 +13,5 @@ export const meetingSchema = z.object({
 export const createMeetingDTOSchema = meetingSchema.omit({ id: true });
 
 export const updateMeetingDTOSchema = meetingSchema
-  .omit({ id: true })
+  .omit({ id: true, owner: true })
   .partial();

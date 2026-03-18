@@ -70,7 +70,7 @@ export const meetingsService = {
 
   update(id: string, data: UpdateMeetingDTO) {
     const updates: string[] = [];
-    const values: unknown[] = [];
+    const values: (number | string)[] = [];
 
     Object.entries(data).forEach(([key, value]) => {
       updates.push(`${key} = ?`);
