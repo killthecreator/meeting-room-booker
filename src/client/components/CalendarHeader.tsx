@@ -8,9 +8,9 @@ import {
 
 export function CalendarHeader() {
   return (
-    <thead className="border-secondary-200/60 from-secondary-50 sticky top-0 left-0 z-20 border-b bg-gradient-to-r to-white">
+    <thead className="border-secondary-200/60 from-secondary-50 sticky top-0 left-0 z-20 border-b bg-linear-to-r to-white">
       <tr className="flex h-11 items-stretch">
-        <th className="from-secondary-50 sticky left-0 w-[132px] min-w-[132px] rounded-tl-2xl bg-gradient-to-r to-white" />
+        <th className="from-secondary-50 sticky left-0 w-[132px] min-w-[132px] rounded-tl-2xl bg-linear-to-r to-white" />
         {HOURS.map((h) => (
           <th
             key={h}

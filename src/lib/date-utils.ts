@@ -56,6 +56,24 @@ export function isWeekend(d: Date): boolean {
   return day === 0 || day === 6;
 }
 
+/** Next weekday (Monday) from d. If d is weekday, returns d. */
+export function getNextWeekday(d: Date): Date {
+  const out = new Date(d);
+  const day = out.getDay();
+  if (day === 0) out.setDate(out.getDate() + 1); // Sun -> Mon
+  else if (day === 6) out.setDate(out.getDate() + 2); // Sat -> Mon
+  return out;
+}
+
+/** Previous weekday (Friday) from d. If d is weekday, returns d. */
+export function getPreviousWeekday(d: Date): Date {
+  const out = new Date(d);
+  const day = out.getDay();
+  if (day === 0) out.setDate(out.getDate() - 2); // Sun -> Fri
+  else if (day === 6) out.setDate(out.getDate() - 1); // Sat -> Fri
+  return out;
+}
+
 /** Parse YYYY-MM-DD string to Date (midnight in local time) */
 export function parseDateInput(value: string): Date {
   const [y, m, d] = value.split("-").map(Number);

@@ -31,13 +31,27 @@ export function LoginPage() {
         : error;
 
   return (
-    <div className="flex min-h-screen min-w-screen flex-col items-center justify-center p-4"
-      style={{ background: "linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)" }}
+    <div
+      className="flex min-h-screen min-w-screen flex-col items-center justify-center p-4"
+      style={{
+        background:
+          "linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)",
+      }}
     >
-      <div className="animate-fade-in w-full max-w-sm rounded-2xl border border-white/20 bg-white/80 p-8 shadow-2xl shadow-primary-900/10 backdrop-blur-xl">
-        <div className="mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-primary-500 to-primary-700 shadow-lg shadow-primary-500/30">
-          <svg className="h-7 w-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
+      <div className="animate-fade-in shadow-primary-900/10 w-full max-w-sm rounded-2xl border border-white/20 bg-white/80 p-8 shadow-2xl backdrop-blur-xl">
+        <div className="from-primary-500 to-primary-700 shadow-primary-500/30 mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-linear-to-br shadow-lg">
+          <svg
+            className="h-7 w-7 text-white"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={1.5}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5"
+            />
           </svg>
         </div>
         <h1 className="text-secondary-900 mb-1 text-center text-xl font-bold tracking-tight">
@@ -57,7 +71,7 @@ export function LoginPage() {
         <button
           type="button"
           onClick={login}
-          className="flex h-12 w-full cursor-pointer items-center justify-center gap-3 rounded-xl border border-secondary-200 bg-white text-base font-medium text-secondary-800 shadow-sm transition-all duration-200 hover:border-secondary-300 hover:shadow-md active:scale-[0.98]"
+          className="border-secondary-200 text-secondary-800 hover:border-secondary-300 flex h-12 w-full cursor-pointer items-center justify-center gap-3 rounded-xl border bg-white text-base font-medium shadow-sm transition-all duration-200 hover:shadow-md active:scale-[0.98]"
         >
           <img
             src={GOOGLE_LOGO_SVG}

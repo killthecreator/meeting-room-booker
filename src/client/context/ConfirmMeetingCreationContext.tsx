@@ -23,6 +23,9 @@ import {
   WORKDAY_END_MIN,
   WORKDAY_START_MIN,
   minutesFromMidnight,
+  isWeekend,
+  getNextWeekday,
+  getPreviousWeekday,
 } from "../../lib/date-utils";
 
 type FormValues = {
@@ -142,6 +145,12 @@ export const ConfirmMeetingCreationProvider = ({
     let dateStr = formatDateForInput(baseDate);
     if (opts.minDate && dateStr < opts.minDate) dateStr = opts.minDate;
     if (opts.maxDate && dateStr > opts.maxDate) dateStr = opts.maxDate;
+    if (isWeekend(parseDateInput(dateStr))) {
+      const d = getNextWeekday(parseDateInput(dateStr));
+      dateStr = formatDateForInput(d);
+      if (opts.minDate && dateStr < opts.minDate) dateStr = opts.minDate;
+      if (opts.maxDate && dateStr > opts.maxDate) dateStr = opts.maxDate;
+    }
     const startStr = opts.start
       ? formatMinutesAsTime(minutesFromMidnight(opts.start))
       : formatMinutesAsTime(WORKDAY_START_MIN);
@@ -195,6 +204,10 @@ export const ConfirmMeetingCreationProvider = ({
       const end = new Date(date);
       end.setHours(endH, endM, 0, 0);
 
+      if (isWeekend(date)) {
+        setOverlapError("Weekends are not available for meetings.");
+        return;
+      }
       const durationMs = end.getTime() - start.getTime();
       if (durationMs < 15 * 60 * 1000) {
         setOverlapError("Meeting must be at least 15 minutes.");
@@ -238,15 +251,32 @@ export const ConfirmMeetingCreationProvider = ({
     (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
       const { name, value } = e.target;
       setFormValues((prev) => {
-        const next = { ...prev, [name]: value };
         const opts = optionsRef.current;
+        const next = {
+          ...prev,
+          [name]:
+            name === "date" && isWeekend(parseDateInput(value))
+              ? (() => {
+                  const nextD = getNextWeekday(parseDateInput(value));
+                  const prevD = getPreviousWeekday(parseDateInput(value));
+                  const nextStr = formatDateForInput(nextD);
+                  const prevStr = formatDateForInput(prevD);
+                  if (opts?.maxDate && nextStr > opts.maxDate) return prevStr;
+                  if (opts?.minDate && prevStr < opts.minDate) return nextStr;
+                  let out = nextStr;
+                  if (opts?.minDate && out < opts.minDate) out = opts.minDate;
+                  if (opts?.maxDate && out > opts.maxDate) out = opts.maxDate;
+                  return out;
+                })()
+              : value,
+        };
         if (name === "name") {
           opts?.onDraftNameChange?.(value);
         } else if (
           opts?.onDraftChange &&
           (name === "date" || name === "start" || name === "end")
         ) {
-          const dateStr = name === "date" ? value : prev.date;
+          const dateStr = name === "date" ? next.date : prev.date;
           const startStr = name === "start" ? value : prev.start;
           const endStr = name === "end" ? value : prev.end;
           const d = parseDateInput(dateStr);
