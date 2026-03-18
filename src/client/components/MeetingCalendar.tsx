@@ -7,13 +7,7 @@ import {
   getCalendarDays,
   formatDateForInput,
 } from "../../lib/date-utils";
-import {
-  getStartBounds,
-  getEndBounds,
-  clampMoveStart,
-  hasOverlap,
-  GRID_STEP_MINUTES,
-} from "../../lib/meeting-bounds";
+import { hasOverlap, GRID_STEP_MINUTES } from "../../lib/meeting-bounds";
 import { CalendarHeader } from "./CalendarHeader";
 import { DayRow, type DraftMeeting } from "./DayRow";
 import { useConfirmMeetingCreation } from "../context/ConfirmMeetingCreationContext";
@@ -26,12 +20,11 @@ const STEP = 15;
 
 export function MeetingCalendar() {
   const { user: authUser } = useAuth();
-  const { meetings, createMeeting, deleteMeeting, updateMeeting } =
-    useMeetings();
+  const { meetings, createMeeting } = useMeetings();
 
   const { confirmMeetingCreation, updateCreateFormDraft } =
     useConfirmMeetingCreation();
-  const currentUserId = authUser?.id;
+
   const [draftMeeting, setDraftMeeting] = useState<DraftMeeting | null>(null);
   const ghostAnchorRef = useRef<HTMLDivElement>(null);
   const touchDragEndRef = useRef(false);
@@ -73,7 +66,14 @@ export function MeetingCalendar() {
         minDate: weekMinDate,
         maxDate: weekMaxDate,
         checkOverlap: (s, e) =>
-          hasOverlap(s, e, meetingsByDay[dayKey(s)] ?? []),
+          hasOverlap(
+            s,
+            e,
+            (meetingsByDay[dayKey(s)] ?? []).map((meeting) => ({
+              start: new Date(meeting.start),
+              end: new Date(meeting.end),
+            })),
+          ),
         onDraftChange: (newStart, newEnd, newDate) => {
           setDraftMeeting((prev) =>
             prev
@@ -130,89 +130,6 @@ export function MeetingCalendar() {
     [draftMeeting, updateCreateFormDraft],
   );
 
-  const handleDelete = useCallback(
-    (id: string) => {
-      deleteMeeting(id);
-    },
-    [deleteMeeting],
-  );
-
-  const handleResize = useCallback(
-    (
-      meetingId: string,
-      newStartMin: number | null,
-      newEndMin: number | null,
-    ) => {
-      const meeting = meetings.find((m) => m.id === meetingId);
-      if (!meeting || meeting.owner.id !== currentUserId) return;
-      const startDate = new Date(meeting.start);
-      const endDate = new Date(meeting.end);
-      const k = dayKey(startDate);
-      const others = meetings.filter(
-        (m) => dayKey(new Date(m.start)) === k && m.id !== meetingId,
-      );
-      const startMin = minutesFromMidnight(startDate);
-      const endMin = minutesFromMidnight(endDate);
-
-      let start = startDate;
-      let end = endDate;
-
-      if (newStartMin !== null) {
-        const [minStart, maxStart] = getStartBounds(endMin, others, STEP);
-        const snapped = Math.round(newStartMin / STEP) * STEP;
-        const clamped = Math.max(minStart, Math.min(maxStart, snapped));
-        start = setMinutesFromMidnight(startDate, clamped);
-      }
-      if (newEndMin !== null) {
-        const [minEnd, maxEnd] = getEndBounds(startMin, others, STEP);
-        const snapped = Math.round(newEndMin / STEP) * STEP;
-        const clamped = Math.max(minEnd, Math.min(maxEnd, snapped));
-        end = setMinutesFromMidnight(endDate, clamped);
-      }
-
-      if (
-        start.getTime() === startDate.getTime() &&
-        end.getTime() === endDate.getTime()
-      )
-        return;
-
-      updateMeeting(meetingId, {
-        start: start.toISOString(),
-        end: end.toISOString(),
-      });
-    },
-    [currentUserId, meetings, updateMeeting],
-  );
-
-  const handleMeetingDrop = useCallback(
-    (date: Date, startMinutes: number, meetingId: string) => {
-      const meeting = meetings.find((m) => m.id === meetingId);
-      if (!meeting || meeting.owner.id !== currentUserId) return;
-      const startDate = new Date(meeting.start);
-      const endDate = new Date(meeting.end);
-      const duration =
-        minutesFromMidnight(endDate) - minutesFromMidnight(startDate);
-      const targetDayKey = dayKey(date);
-      const othersOnTargetDay = meetings.filter(
-        (m) => dayKey(new Date(m.start)) === targetDayKey && m.id !== meetingId,
-      );
-      const snapped = Math.round(startMinutes / STEP) * STEP;
-      const clampedStart = clampMoveStart(snapped, duration, othersOnTargetDay);
-      const start = setMinutesFromMidnight(date, clampedStart);
-      const end = setMinutesFromMidnight(date, clampedStart + duration);
-      if (
-        start.getTime() === startDate.getTime() &&
-        end.getTime() === endDate.getTime()
-      )
-        return;
-      updateMeeting(meetingId, {
-        start: start.toISOString(),
-        end: end.toISOString(),
-      });
-    },
-    [currentUserId, meetings, updateMeeting],
-  );
-
   return (
     <div className="animate-fade-in shadow-primary-900/5 relative flex max-h-[90vh] w-[90vw] max-w-[1500px] justify-center overflow-auto rounded-2xl border border-white/60 bg-white/80 shadow-xl backdrop-blur-xl">
       <table className="block w-full border-collapse overflow-auto rounded-2xl">
@@ -226,18 +143,14 @@ export function MeetingCalendar() {
             <DayRow
               key={dayKey(date)}
               date={date}
-              meetings={meetingsByDay[dayKey(date)] ?? []}
+              dayMeetings={meetingsByDay[dayKey(date)] ?? []}
               draftMeeting={draftMeeting}
               ghostAnchorRef={
                 draftMeeting && dayKey(draftMeeting.date) === dayKey(date)
                   ? ghostAnchorRef
                   : undefined
               }
-              currentUserId={currentUserId}
               onSlotClick={handleSlotClick}
-              onDelete={handleDelete}
-              onResize={handleResize}
-              onMeetingDrop={handleMeetingDrop}
               onDraftDrop={handleDraftDrop}
               onTouchDragEnd={handleTouchDragEnd}
             />

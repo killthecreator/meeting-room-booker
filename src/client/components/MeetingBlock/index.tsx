@@ -11,32 +11,29 @@ import {
 import { MeetingTooltip } from "./MeetingTooltip";
 import { cn } from "../../../lib/cn";
 import { Resizer } from "./Resizer";
+import { useMeetings } from "../../context/MeetingsContext";
+import { useAuth } from "../../context/AuthContext";
 
 const DRAG_THRESHOLD_PX = 8;
 const STEP = 15;
 
 export type MeetingBlockProps = {
   meeting: MeetingDTO;
-  onDelete: (id: string) => void;
   onResizeStart: (edge: "left" | "right") => void;
-  onMeetingDrop?: (date: Date, startMinutes: number, meetingId: string) => void;
+  onMeetingDrop: (date: Date, startMinutes: number, meetingId: string) => void;
   onTouchDragEnd?: () => void;
   isResizing?: boolean;
-  /** Only show delete button and allow delete when true (meeting created by current user) */
-  canDelete?: boolean;
-  /** Highlight block when true (my meeting) */
-  isMine?: boolean;
 };
 
 export function MeetingBlock({
   meeting,
-  onDelete,
   onResizeStart,
   onMeetingDrop,
   onTouchDragEnd,
   isResizing = false,
-  isMine = false,
 }: MeetingBlockProps) {
+  const { user } = useAuth();
+  const isUsersMeeting = user?.id === meeting.owner.id;
   const blockRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const touchDragRef = useRef<{
@@ -48,6 +45,8 @@ export function MeetingBlock({
   } | null>(null);
 
   const showTooltip = !isDragging && !isResizing;
+
+  const { deleteMeeting } = useMeetings();
 
   const startMin = minutesFromMidnight(new Date(meeting.start));
   const endMin = minutesFromMidnight(new Date(meeting.end));
@@ -80,7 +79,7 @@ export function MeetingBlock({
 
   const handleTouchStart = useCallback(
     (e: React.TouchEvent) => {
-      if (!isMine || !onMeetingDrop) return;
+      if (!isUsersMeeting) return;
       const touch = e.touches[0];
       if (!touch) return;
       const rect = blockRef.current?.getBoundingClientRect();
@@ -121,7 +120,7 @@ export function MeetingBlock({
         setIsDragging(false);
         cleanup();
 
-        if (!data.didDrag || !onMeetingDrop) return;
+        if (!data.didDrag) return;
 
         const el = document.elementFromPoint(t.clientX, t.clientY);
         if (!el) return;
@@ -163,7 +162,7 @@ export function MeetingBlock({
       document.addEventListener("touchend", handleEnd);
       document.addEventListener("touchcancel", handleEnd);
     },
-    [isMine, meeting.id, onMeetingDrop, onTouchDragEnd],
+    [isUsersMeeting, meeting.id, onMeetingDrop, onTouchDragEnd],
   );
 
   return (
@@ -171,7 +170,7 @@ export function MeetingBlock({
       ref={blockRef}
       className={cn(
         "group/meeting-block absolute top-1.5 bottom-1.5 flex min-w-[40px] items-center gap-1.5 overflow-visible rounded-lg px-2.5 transition-shadow duration-200",
-        isMine
+        isUsersMeeting
           ? "from-primary-500 to-primary-600 shadow-primary-500/25 hover:shadow-primary-500/30 cursor-grab bg-linear-to-r text-white shadow-md ring-1 ring-white/20 ring-inset hover:shadow-lg active:cursor-grabbing"
           : "from-secondary-600 to-secondary-700 shadow-secondary-500/15 bg-linear-to-r text-white/90 shadow-sm ring-1 ring-white/10 ring-inset",
       )}
@@ -179,10 +178,10 @@ export function MeetingBlock({
         left: `${left}%`,
         width: `${width}%`,
         anchorName: `--tooltip-${meeting.id}`,
-        ...(isMine && { touchAction: "none" as const }),
+        ...(isUsersMeeting && { touchAction: "none" as const }),
       }}
       onClick={(e) => e.stopPropagation()}
-      {...(isMine && {
+      {...(isUsersMeeting && {
         draggable: true,
         onDragStart: handleDragStart,
         onDragEnd: handleDragEnd,
@@ -194,15 +193,12 @@ export function MeetingBlock({
         {meeting.name}
       </span>
 
-      {isMine && (
+      {isUsersMeeting && (
         <>
           <button
             className="meeting-delete flex h-[22px] w-[22px] shrink-0 cursor-pointer items-center justify-center rounded-md border-0 bg-white/15 p-0 text-sm leading-none text-white/80 transition-colors duration-150 hover:bg-white/30 hover:text-white"
             draggable={false}
-            onClick={(e) => {
-              e.stopPropagation();
-              onDelete(meeting.id);
-            }}
+            onClick={() => deleteMeeting(meeting.id)}
           >
             ×
           </button>

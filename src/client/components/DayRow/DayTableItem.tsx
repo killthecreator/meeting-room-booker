@@ -16,7 +16,7 @@ export function DayTableItem({ date }: DayTableItemProps) {
         "border-secondary-100 sticky left-0 z-1 flex w-[132px] min-w-[132px] items-center justify-center border-r py-2 backdrop-blur-sm transition-colors duration-200",
         weekend
           ? "bg-secondary-100/60 text-secondary-400 cursor-default"
-          : "from-secondary-50/80 group-hover/row:from-primary-50/50 group-hover/row:to-primary-50/20 bg-gradient-to-r to-white/80",
+          : "from-secondary-50/80 group-hover/row:from-primary-50/50 group-hover/row:to-primary-50/20 bg-linear-to-r to-white/80",
       )}
       onClick={(e) => e.stopPropagation()}
     >

@@ -5,6 +5,7 @@ import {
   useEffect,
   type MouseEvent,
   type RefObject,
+  type DragEvent,
 } from "react";
 import { MeetingBlock } from "../MeetingBlock";
 import {
@@ -18,13 +19,20 @@ import {
   WORKDAY_START_MIN,
   WORKDAY_END_MIN,
   TIMELINE_MINUTES,
+  setMinutesFromMidnight,
 } from "../../../lib/date-utils";
-import { GRID_STEP_MINUTES } from "../../../lib/meeting-bounds";
+import {
+  clampMoveStart,
+  getEndBounds,
+  getStartBounds,
+  GRID_STEP_MINUTES,
+} from "../../../lib/meeting-bounds";
 import type { DragState } from "../../../types/DragState.type";
 import type { MeetingDTO } from "../../../types/Meeting.type";
 import { cn } from "../../../lib/cn";
 import { DayTableItem } from "./DayTableItem";
 import { TimePerDayDistribution } from "./TimePerDayDistribution";
+import { useMeetings } from "../../context/MeetingsContext";
 
 /** Step in minutes for the timeline (15 minutes) */
 const STEP = 15;
@@ -38,33 +46,20 @@ export type DraftMeeting = {
 
 type DayRowProps = {
   date: Date;
-  meetings: MeetingDTO[];
+  dayMeetings: MeetingDTO[];
   draftMeeting: DraftMeeting | null;
   ghostAnchorRef?: RefObject<HTMLDivElement | null>;
-  /** Current user id (e.g. Google sub) for canDelete / isMine */
-  currentUserId?: string | null;
   onSlotClick: (date: Date, startMinutes: number) => void;
-  onDelete: (id: string) => void;
-  onResize: (
-    meetingId: string,
-    newStartMin: number | null,
-    newEndMin: number | null,
-  ) => void;
-  onMeetingDrop: (date: Date, startMinutes: number, meetingId: string) => void;
   onDraftDrop: (date: Date, startMinutes: number) => void;
   onTouchDragEnd?: () => void;
 };
 
 export function DayRow({
   date,
-  meetings,
+  dayMeetings,
   draftMeeting,
   ghostAnchorRef,
-  currentUserId = null,
   onSlotClick,
-  onDelete,
-  onResize,
-  onMeetingDrop,
   onDraftDrop,
   onTouchDragEnd,
 }: DayRowProps) {
@@ -73,6 +68,82 @@ export function DayRow({
   const [drag, setDrag] = useState<DragState | null>(null);
   const ignoreNextClickRef = useRef(false);
   const weekend = isWeekend(date);
+
+  const { updateMeeting, meetings } = useMeetings();
+
+  const handleMeetingDrop = useCallback(
+    (date: Date, startMinutes: number, meetingId: string) => {
+      const meeting = meetings.find((m) => m.id === meetingId)!;
+      const startDate = new Date(meeting.start);
+      const endDate = new Date(meeting.end);
+      const duration =
+        minutesFromMidnight(endDate) - minutesFromMidnight(startDate);
+      const targetDayKey = dayKey(date);
+      const othersOnTargetDay = meetings.filter(
+        (m) => dayKey(new Date(m.start)) === targetDayKey && m.id !== meetingId,
+      );
+      const snapped = Math.round(startMinutes / STEP) * STEP;
+      const clampedStart = clampMoveStart(snapped, duration, othersOnTargetDay);
+      const start = setMinutesFromMidnight(date, clampedStart);
+      const end = setMinutesFromMidnight(date, clampedStart + duration);
+      if (
+        start.getTime() === startDate.getTime() &&
+        end.getTime() === endDate.getTime()
+      )
+        return;
+      updateMeeting(meetingId, {
+        start: start.toISOString(),
+        end: end.toISOString(),
+      });
+    },
+    [meetings, updateMeeting],
+  );
+
+  const handleResize = useCallback(
+    (
+      meetingId: string,
+      newStartMin: number | null,
+      newEndMin: number | null,
+    ) => {
+      const meeting = meetings.find((m) => m.id === meetingId)!;
+      const startDate = new Date(meeting.start);
+      const endDate = new Date(meeting.end);
+      const k = dayKey(startDate);
+      const others = meetings.filter(
+        (m) => dayKey(new Date(m.start)) === k && m.id !== meetingId,
+      );
+      const startMin = minutesFromMidnight(startDate);
+      const endMin = minutesFromMidnight(endDate);
+
+      let start = startDate;
+      let end = endDate;
+
+      if (newStartMin !== null) {
+        const [minStart, maxStart] = getStartBounds(endMin, others, STEP);
+        const snapped = Math.round(newStartMin / STEP) * STEP;
+        const clamped = Math.max(minStart, Math.min(maxStart, snapped));
+        start = setMinutesFromMidnight(startDate, clamped);
+      }
+      if (newEndMin !== null) {
+        const [minEnd, maxEnd] = getEndBounds(startMin, others, STEP);
+        const snapped = Math.round(newEndMin / STEP) * STEP;
+        const clamped = Math.max(minEnd, Math.min(maxEnd, snapped));
+        end = setMinutesFromMidnight(endDate, clamped);
+      }
+
+      if (
+        start.getTime() === startDate.getTime() &&
+        end.getTime() === endDate.getTime()
+      )
+        return;
+
+      updateMeeting(meetingId, {
+        start: start.toISOString(),
+        end: end.toISOString(),
+      });
+    },
+    [meetings, updateMeeting],
+  );
 
   useEffect(() => {
     if (!drag) return;
@@ -94,9 +165,9 @@ export function DayRow({
         Math.round((rawMinutes - WORKDAY_START_MIN) / GRID_STEP_MINUTES) *
           GRID_STEP_MINUTES;
       if (drag.edge === "left") {
-        onResize(drag.meetingId, minutes, null);
+        handleResize(drag.meetingId, minutes, null);
       } else {
-        onResize(drag.meetingId, null, minutes);
+        handleResize(drag.meetingId, null, minutes);
       }
     };
     const handleUp = () => {
@@ -121,10 +192,10 @@ export function DayRow({
     return () => {
       controller.abort();
     };
-  }, [drag, onResize]);
+  }, [drag, handleResize]);
 
   const handleDragOver = useCallback(
-    (e: React.DragEvent<HTMLTableRowElement>) => {
+    (e: DragEvent<HTMLTableRowElement>) => {
       e.preventDefault();
       e.dataTransfer.dropEffect = weekend ? "none" : "move";
     },
@@ -133,7 +204,7 @@ export function DayRow({
 
   const dropProcessedRef = useRef(false);
   const handleDrop = useCallback(
-    (e: React.DragEvent<HTMLTableRowElement>) => {
+    (e: DragEvent<HTMLTableRowElement>) => {
       e.preventDefault();
       e.stopPropagation();
       if (weekend) return;
@@ -160,10 +231,10 @@ export function DayRow({
       if (meetingId === DRAFT_MEETING_ID) {
         onDraftDrop(date, clamped);
       } else {
-        onMeetingDrop(date, clamped, meetingId);
+        handleMeetingDrop(date, clamped, meetingId);
       }
     },
-    [date, weekend, onMeetingDrop, onDraftDrop],
+    [date, weekend, handleMeetingDrop, onDraftDrop],
   );
 
   const handleTimelineClick = (e: MouseEvent<HTMLTableRowElement>) => {
@@ -190,26 +261,15 @@ export function DayRow({
   };
 
   const handleResizeStart = useCallback(
-    (meetingId: string, edge: "left" | "right") => {
-      if (meetingId === DRAFT_MEETING_ID && draftMeeting) {
-        setDrag({
-          meetingId: DRAFT_MEETING_ID,
-          edge,
-          startMin: minutesFromMidnight(draftMeeting.start),
-          endMin: minutesFromMidnight(draftMeeting.end),
-        });
-        return;
-      }
-      const m = meetings.find((x) => x.id === meetingId);
-      if (!m) return;
+    (meeting: MeetingDTO, edge: "left" | "right") => {
       setDrag({
-        meetingId,
+        meetingId: meeting.id,
         edge,
-        startMin: minutesFromMidnight(new Date(m.start)),
-        endMin: minutesFromMidnight(new Date(m.end)),
+        startMin: minutesFromMidnight(new Date(meeting.start)),
+        endMin: minutesFromMidnight(new Date(meeting.end)),
       });
     },
-    [meetings, draftMeeting],
+    [],
   );
 
   return (
@@ -225,7 +285,6 @@ export function DayRow({
       onDrop={handleDrop}
     >
       <DayTableItem date={date} />
-
       <td
         ref={timelineCellRef}
         className={cn(
@@ -236,18 +295,16 @@ export function DayRow({
         )}
       >
         <TimePerDayDistribution />
-        {meetings.map((m) => (
+        {dayMeetings.map((m) => (
           <MeetingBlock
             key={m.id}
             meeting={m}
-            onDelete={onDelete}
             onResizeStart={(edge: "left" | "right") =>
-              handleResizeStart(m.id, edge)
+              handleResizeStart(m, edge)
             }
-            onMeetingDrop={onMeetingDrop}
+            onMeetingDrop={handleMeetingDrop}
             onTouchDragEnd={onTouchDragEnd}
             isResizing={drag !== null && drag.meetingId === m.id}
-            isMine={!!(currentUserId && m.owner.id === currentUserId)}
           />
         ))}
         {draftMeeting && dayKey(draftMeeting.date) === dayKey(date) && (
