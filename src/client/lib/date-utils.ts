@@ -1,8 +1,8 @@
 import { CONFIG } from "../config";
 
 /** Workday: 8:00–19:00 (minutes from midnight and length in minutes) */
-export const WORKDAY_START_MIN = 8 * 60; // 480
-export const WORKDAY_END_MIN = 19 * 60; // 1140
+export const WORKDAY_START_MIN = CONFIG.DAY_START_HOUR * 60; // 480
+export const WORKDAY_END_MIN = CONFIG.DAY_END_HOUR * 60; // 1140
 export const WORKDAY_MINUTES = WORKDAY_END_MIN - WORKDAY_START_MIN; // 660
 
 /** Timeline scale for positioning: 8:00–19:00, matches 11 column boundaries */
