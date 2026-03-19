@@ -20,10 +20,6 @@ app.use(ipCheckMiddleware);
 app.use(express.static("dist", { index: false }));
 
 app.use(morgan("tiny"));
-app.use("/api/auth", authRouter);
-app.use(authMiddleware);
-app.use("/api/meetings", meetingRouter);
-app.use(errorLogger).use(errorHandler);
 
 app.get("/health", (_req, res) => {
   const healthcheck = {
@@ -33,6 +29,10 @@ app.get("/health", (_req, res) => {
   };
   res.send(healthcheck);
 });
+app.use("/api/auth", authRouter);
+app.use(authMiddleware);
+app.use("/api/meetings", meetingRouter);
+app.use(errorLogger).use(errorHandler);
 
 const PORT = Number(process.env.PORT) || 3001;
 const server = app.listen(PORT, () => {
