@@ -16,6 +16,7 @@ import {
   minutesFromMidnight,
   dayKey,
   isWeekend,
+  isToday,
   WORKDAY_START_MIN,
   WORKDAY_END_MIN,
   TIMELINE_MINUTES,
@@ -32,6 +33,7 @@ import type { MeetingDTO } from "../../../types/Meeting.type";
 import { cn } from "../../lib/cn";
 import { DayTableItem } from "./DayTableItem";
 import { TimePerDayDistribution } from "./TimePerDayDistribution";
+import { CurrentTimeIndicator } from "../CurrentTimeIndicator";
 import { useMeetings } from "../../context/MeetingsContext";
 import { CONFIG } from "../../config";
 
@@ -66,6 +68,7 @@ export function DayRow({
   const [drag, setDrag] = useState<DragState | null>(null);
   const ignoreNextClickRef = useRef(false);
   const weekend = isWeekend(date);
+  const today = isToday(date);
 
   const { updateMeeting, meetings } = useMeetings();
 
@@ -281,11 +284,15 @@ export function DayRow({
       className={cn(
         "group/row border-secondary-100 relative flex h-14 border-b transition-colors duration-200",
         weekend && "bg-secondary-100/50 cursor-default",
+        today && "border-primary-200/60 z-[1]",
       )}
       onClick={handleTimelineClick}
       onDragOver={handleDragOver}
       onDrop={handleDrop}
     >
+      {today && (
+        <div className="from-primary-500 to-primary-400 absolute top-0 bottom-0 left-0 z-2 w-[3px] rounded-r-full bg-linear-to-b" />
+      )}
       <DayTableItem date={date} />
       <td
         ref={timelineCellRef}
@@ -293,10 +300,13 @@ export function DayRow({
           "relative min-w-0 flex-1 p-0 transition-colors duration-200",
           weekend
             ? "bg-secondary-100/40"
-            : "group-hover/row:bg-primary-50/30 bg-white/60",
+            : today
+              ? "bg-primary-50/25"
+              : "group-hover/row:bg-primary-50/30 bg-white/60",
         )}
       >
         <TimePerDayDistribution />
+        {today && <CurrentTimeIndicator />}
         {dayMeetings.map((m) => (
           <MeetingBlock
             key={m.id}
