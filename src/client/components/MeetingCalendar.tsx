@@ -6,6 +6,7 @@ import {
   WORKDAY_END_MIN,
   getCalendarDays,
   formatDateForInput,
+  TIMELINE_HOURS,
 } from "../../lib/date-utils";
 import { hasOverlap, GRID_STEP_MINUTES } from "../../lib/meeting-bounds";
 import { CalendarHeader } from "./CalendarHeader";
@@ -14,9 +15,9 @@ import { useConfirmMeetingCreation } from "../context/ConfirmMeetingCreationCont
 import { useAuth } from "../context/AuthContext";
 import { useMeetings } from "../context/MeetingsContext";
 import type { MeetingDTO } from "../../types/Meeting.type";
+import { CONFIG } from "../config";
 
-/** Step in minutes for the timeline (15 minutes) */
-const STEP = 15;
+const { TIME_STEP, VERT_HEADER_CELL_WIDTH, CONTENT_CELL_WIDTH } = CONFIG;
 
 export function MeetingCalendar() {
   const { user: authUser } = useAuth();
@@ -50,8 +51,9 @@ export function MeetingCalendar() {
         touchDragEndRef.current = false;
         return;
       }
-      const snappedStart = Math.round(startMinutes / STEP) * STEP;
-      const defaultEnd = Math.round((startMinutes + 60) / STEP) * STEP;
+      const snappedStart = Math.round(startMinutes / TIME_STEP) * TIME_STEP;
+      const defaultEnd =
+        Math.round((startMinutes + 60) / TIME_STEP) * TIME_STEP;
       const snappedEnd = Math.min(defaultEnd, WORKDAY_END_MIN);
       const start = setMinutesFromMidnight(date, snappedStart);
       const end = setMinutesFromMidnight(date, snappedEnd);
@@ -62,7 +64,7 @@ export function MeetingCalendar() {
         start,
         end,
         date,
-        step: STEP * 60,
+        step: TIME_STEP * 60,
         minDate: weekMinDate,
         maxDate: weekMaxDate,
         checkOverlap: (s, e) =>
@@ -131,7 +133,13 @@ export function MeetingCalendar() {
   );
 
   return (
-    <div className="animate-fade-in shadow-primary-900/5 relative flex max-h-[90vh] w-[90vw] max-w-[1500px] justify-center overflow-auto rounded-2xl border border-white/60 bg-white/80 shadow-xl backdrop-blur-xl">
+    <div
+      className="animate-fade-in shadow-primary-900/5 relative flex h-fit max-h-[90vh] w-[90vw] justify-center overflow-auto rounded-2xl border border-white/60 bg-white/80 shadow-xl backdrop-blur-xl"
+      style={{
+        maxWidth:
+          VERT_HEADER_CELL_WIDTH + CONTENT_CELL_WIDTH * TIMELINE_HOURS + 2,
+      }}
+    >
       <table className="block w-full border-collapse overflow-auto rounded-2xl">
         <colgroup className="grid grid-cols-[auto_1fr]">
           <col />

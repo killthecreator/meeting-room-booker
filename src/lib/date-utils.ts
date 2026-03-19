@@ -8,6 +8,7 @@ export const WORKDAY_MINUTES = WORKDAY_END_MIN - WORKDAY_START_MIN; // 660
 /** Timeline scale for positioning: 8:00–19:00, matches 11 column boundaries */
 export const TIMELINE_END_MIN = 19 * 60; // 1140
 export const TIMELINE_MINUTES = TIMELINE_END_MIN - WORKDAY_START_MIN; // 660
+export const TIMELINE_HOURS = TIMELINE_MINUTES / 60;
 
 /** Day key for grouping: YYYY-MM-DD */
 export function dayKey(d: Date): string {
