@@ -291,7 +291,7 @@ export function DayRow({
       onDrop={handleDrop}
     >
       {today && (
-        <div className="from-primary-500 to-primary-400 absolute top-0 bottom-0 left-0 z-2 w-[3px] rounded-r-full bg-linear-to-b" />
+        <td className="from-primary-500 to-primary-400 absolute top-0 bottom-0 left-0 z-2 w-[3px] rounded-r-full bg-linear-to-b" />
       )}
       <DayTableItem date={date} />
       <td

@@ -75,6 +75,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         window.location.pathname + window.location.search,
       );
     }
+
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchUser().finally(() => setLoading(false));
   }, [fetchUser]);
 

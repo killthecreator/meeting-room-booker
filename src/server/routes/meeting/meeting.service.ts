@@ -6,7 +6,6 @@ import type {
 import db from "../../db";
 
 // MOVE
-
 const dbMeetingToMeetingDTO = z
   .object({
     id: z.string(),
