@@ -6,8 +6,6 @@ import {
   type ReactNode,
   useCallback,
   useMemo,
-  type ComponentType,
-  type ComponentProps,
   useEffect,
   type MouseEvent,
   type CSSProperties,
@@ -449,13 +447,3 @@ export const ConfirmMeetingCreationProvider = ({
 
 export const useConfirmMeetingCreation = () =>
   use(ConfirmMeetingCreationContext);
-
-export const withConfirmMeetingCreationContext =
-  // Any is expected
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  <T extends ComponentType<any>>(Component: T) =>
-    (props: ComponentProps<T>) => (
-      <ConfirmMeetingCreationProvider>
-        <Component {...props} />
-      </ConfirmMeetingCreationProvider>
-    );

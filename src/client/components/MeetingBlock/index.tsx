@@ -17,7 +17,7 @@ import { useAuth } from "../../context/AuthContext";
 
 const DRAG_THRESHOLD_PX = 8;
 
-export type MeetingBlockProps = {
+type MeetingBlockProps = {
   meeting: MeetingDTO;
   onResizeStart: (edge: "left" | "right") => void;
   onMeetingDrop: (date: Date, startMinutes: number, meetingId: string) => void;

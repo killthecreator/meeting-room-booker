@@ -1,8 +1,9 @@
 import { cn } from "../../lib/cn";
-import { HOURS, isNonWorkingHour, isWorkBoundaryHour } from "../../config";
+import { HOURS } from "../../config";
 import { FirstQuarterHourTimeSeparator } from "../TimeSeparators/QuarterHourTimeSeparator";
 import { HalfHourTimeSeparator } from "../TimeSeparators/HalfHourTimeSeparator";
 import { SecondQuarterHourTimeSeparator } from "../TimeSeparators/QuarterHourTimeSeparator";
+import { isNonWorkingHour, isWorkBoundaryHour } from "../../lib/date-utils";
 
 export function TimePerDayDistribution() {
   return (

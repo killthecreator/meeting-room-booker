@@ -3,7 +3,7 @@ import type { MeetingDTO } from "../../../types/Meeting.type";
 import { cn } from "../../lib/cn";
 import ClockIcon from "../Icons/ClockIcon";
 
-export type MeetingTooltipProps = {
+type MeetingTooltipProps = {
   meeting: MeetingDTO;
   open: boolean;
 };

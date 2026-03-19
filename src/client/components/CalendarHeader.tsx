@@ -1,10 +1,11 @@
 import { cn } from "../lib/cn";
-import { HOURS, isNonWorkingHour } from "../config";
+import { HOURS } from "../config";
 import { HalfHourTimeSeparator } from "./TimeSeparators/HalfHourTimeSeparator";
 import {
   FirstQuarterHourTimeSeparator,
   SecondQuarterHourTimeSeparator,
 } from "./TimeSeparators/QuarterHourTimeSeparator";
+import { isNonWorkingHour } from "../lib/date-utils";
 
 export function CalendarHeader() {
   return (

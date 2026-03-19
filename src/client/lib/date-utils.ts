@@ -3,7 +3,6 @@ import { CONFIG } from "../config";
 /** Workday: 8:00–19:00 (minutes from midnight and length in minutes) */
 export const WORKDAY_START_MIN = CONFIG.DAY_START_HOUR * 60; // 480
 export const WORKDAY_END_MIN = CONFIG.DAY_END_HOUR * 60; // 1140
-export const WORKDAY_MINUTES = WORKDAY_END_MIN - WORKDAY_START_MIN; // 660
 
 /** Timeline scale for positioning: 8:00–19:00, matches 11 column boundaries */
 export const TIMELINE_END_MIN = 19 * 60; // 1140
@@ -44,16 +43,6 @@ export function getMondayOfWeek(d: Date): Date {
   return out;
 }
 
-/** Mon–Fri of the week containing date d */
-export function getCurrentWeekDays(d: Date): Date[] {
-  const monday = getMondayOfWeek(d);
-  return Array.from({ length: 5 }, (_, i) => {
-    const date = new Date(monday);
-    date.setDate(monday.getDate() + i);
-    return date;
-  });
-}
-
 /** Mon–Sun for the given number of weeks starting from the week containing d */
 export function getCalendarDays(d: Date): Date[] {
   const monday = getMondayOfWeek(d);
@@ -70,6 +59,14 @@ export function isWeekend(d: Date): boolean {
   const day = d.getDay();
   return day === 0 || day === 6;
 }
+
+/** Hours shown as non-working (8–9am and 17–19) */
+export const isNonWorkingHour = (h: number): boolean =>
+  h < CONFIG.WORKDAY_START || h >= CONFIG.WORKDAY_END;
+
+/** Column starts at boundary between working and non-working (draw fat dotted line on left) */
+export const isWorkBoundaryHour = (h: number): boolean =>
+  h === CONFIG.WORKDAY_START || h === CONFIG.WORKDAY_END;
 
 /** Next weekday (Monday) from d. If d is weekday, returns d. */
 export function getNextWeekday(d: Date): Date {
@@ -108,14 +105,6 @@ export function setMinutesFromMidnight(date: Date, minutes: number): Date {
   out.setHours(0, 0, 0, 0);
   out.setTime(out.getTime() + minutes * 60 * 1000);
   return out;
-}
-
-export function formatDayLabel(date: Date): string {
-  return date.toLocaleDateString("en-GB", {
-    weekday: "short",
-    day: "numeric",
-    month: "short",
-  });
 }
 
 export function formatTime(d: Date): string {

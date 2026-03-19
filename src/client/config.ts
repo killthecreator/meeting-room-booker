@@ -13,11 +13,3 @@ export const HOURS = Array.from(
   { length: CONFIG.DAY_END_HOUR - CONFIG.DAY_START_HOUR },
   (_, i) => i + 8,
 ); // 8:00 – 18:00 (columns for 8–9 through 18–19)
-
-/** Hours shown as non-working (8–9am and 17–19) */
-export const isNonWorkingHour = (h: number): boolean =>
-  h < CONFIG.WORKDAY_START || h >= CONFIG.WORKDAY_END;
-
-/** Column starts at boundary between working and non-working (draw fat dotted line on left) */
-export const isWorkBoundaryHour = (h: number): boolean =>
-  h === CONFIG.WORKDAY_START || h === CONFIG.WORKDAY_END;
