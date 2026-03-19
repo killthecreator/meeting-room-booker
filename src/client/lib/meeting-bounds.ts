@@ -8,10 +8,6 @@ import {
 
 const MIN_DURATION_MINUTES = CONFIG.TIME_STEP;
 
-function snapToStep(value: number, step: number): number {
-  return Math.round(value / step) * step;
-}
-
 /** Bounds for changing the start (left edge): [minStart, maxStart] in minutes from midnight. */
 export function getStartBounds(
   endMin: number,
@@ -54,7 +50,7 @@ export function clampMoveStart(
   duration: number,
   others: { start: string; end: string }[],
 ): number {
-  let s = snapToStep(proposedStart, CONFIG.TIME_STEP);
+  let s = roundToClosestStep(proposedStart);
   s = Math.max(WORKDAY_START_MIN, Math.min(WORKDAY_END_MIN - duration, s));
   const maxIterations = (others.length + 1) * 2;
   let iterations = 0;
@@ -77,7 +73,7 @@ export function clampMoveStart(
     }
   }
   s = Math.max(WORKDAY_START_MIN, Math.min(WORKDAY_END_MIN - duration, s));
-  return snapToStep(s, CONFIG.TIME_STEP);
+  return roundToClosestStep(s);
 }
 
 /** Returns true if the interval [start, end] overlaps any of others (by minutes from midnight on the same day). */
