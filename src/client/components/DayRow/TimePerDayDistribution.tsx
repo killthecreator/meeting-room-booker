@@ -1,9 +1,5 @@
-import { cn } from "../../../lib/cn";
-import {
-  HOURS,
-  isNonWorkingHour,
-  isWorkBoundaryHour,
-} from "../../../lib/constants";
+import { cn } from "../../lib/cn";
+import { HOURS, isNonWorkingHour, isWorkBoundaryHour } from "../../config";
 import { FirstQuarterHourTimeSeparator } from "../TimeSeparators/QuarterHourTimeSeparator";
 import { HalfHourTimeSeparator } from "../TimeSeparators/HalfHourTimeSeparator";
 import { SecondQuarterHourTimeSeparator } from "../TimeSeparators/QuarterHourTimeSeparator";

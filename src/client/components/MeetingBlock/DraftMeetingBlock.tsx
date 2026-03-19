@@ -4,7 +4,7 @@ import {
   WORKDAY_START_MIN,
   WORKDAY_END_MIN,
   TIMELINE_MINUTES,
-} from "../../../lib/date-utils";
+} from "../../lib/date-utils";
 
 export const DRAFT_MEETING_ID = "__draft__";
 

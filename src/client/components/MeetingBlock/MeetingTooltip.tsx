@@ -1,6 +1,6 @@
-import { formatTime } from "../../../lib/date-utils";
+import { formatTime } from "../../lib/date-utils";
 import type { MeetingDTO } from "../../../types/Meeting.type";
-import { cn } from "../../../lib/cn";
+import { cn } from "../../lib/cn";
 
 export type MeetingTooltipProps = {
   meeting: MeetingDTO;

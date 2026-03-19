@@ -1,4 +1,4 @@
-import { cn } from "../../../lib/cn";
+import { cn } from "../../lib/cn";
 
 type ResizerProps<T extends "left" | "right"> = {
   edge: T;

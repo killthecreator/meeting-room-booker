@@ -7,9 +7,9 @@ import {
   WORKDAY_START_MIN,
   WORKDAY_END_MIN,
   TIMELINE_MINUTES,
-} from "../../../lib/date-utils";
+} from "../../lib/date-utils";
 import { MeetingTooltip } from "./MeetingTooltip";
-import { cn } from "../../../lib/cn";
+import { cn } from "../../lib/cn";
 import { Resizer } from "./Resizer";
 import { useMeetings } from "../../context/MeetingsContext";
 import { useAuth } from "../../context/AuthContext";

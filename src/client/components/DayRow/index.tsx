@@ -20,19 +20,19 @@ import {
   WORKDAY_END_MIN,
   TIMELINE_MINUTES,
   setMinutesFromMidnight,
-} from "../../../lib/date-utils";
+} from "../../lib/date-utils";
 import {
   clampMoveStart,
   getEndBounds,
   getStartBounds,
-  GRID_STEP_MINUTES,
-} from "../../../lib/meeting-bounds";
+} from "../../lib/meeting-bounds";
 import type { DragState } from "../../../types/DragState.type";
 import type { MeetingDTO } from "../../../types/Meeting.type";
-import { cn } from "../../../lib/cn";
+import { cn } from "../../lib/cn";
 import { DayTableItem } from "./DayTableItem";
 import { TimePerDayDistribution } from "./TimePerDayDistribution";
 import { useMeetings } from "../../context/MeetingsContext";
+import { CONFIG } from "../../config";
 
 /** Step in minutes for the timeline (15 minutes) */
 const STEP = 15;
@@ -119,13 +119,13 @@ export function DayRow({
       let end = endDate;
 
       if (newStartMin !== null) {
-        const [minStart, maxStart] = getStartBounds(endMin, others, STEP);
+        const [minStart, maxStart] = getStartBounds(endMin, others);
         const snapped = Math.round(newStartMin / STEP) * STEP;
         const clamped = Math.max(minStart, Math.min(maxStart, snapped));
         start = setMinutesFromMidnight(startDate, clamped);
       }
       if (newEndMin !== null) {
-        const [minEnd, maxEnd] = getEndBounds(startMin, others, STEP);
+        const [minEnd, maxEnd] = getEndBounds(startMin, others);
         const snapped = Math.round(newEndMin / STEP) * STEP;
         const clamped = Math.max(minEnd, Math.min(maxEnd, snapped));
         end = setMinutesFromMidnight(endDate, clamped);
@@ -162,8 +162,8 @@ export function DayRow({
       const rawMinutes = WORKDAY_START_MIN + pct * TIMELINE_MINUTES;
       const minutes =
         WORKDAY_START_MIN +
-        Math.round((rawMinutes - WORKDAY_START_MIN) / GRID_STEP_MINUTES) *
-          GRID_STEP_MINUTES;
+        Math.round((rawMinutes - WORKDAY_START_MIN) / CONFIG.TIME_STEP) *
+          CONFIG.TIME_STEP;
       if (drag.edge === "left") {
         handleResize(drag.meetingId, minutes, null);
       } else {

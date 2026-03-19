@@ -1,13 +1,11 @@
+import { CONFIG } from "../config";
 import {
   minutesFromMidnight,
   WORKDAY_START_MIN,
   WORKDAY_END_MIN,
 } from "./date-utils";
 
-export const MIN_DURATION_MINUTES = 15;
-
-/** Grid step in minutes (15 min) */
-export const GRID_STEP_MINUTES = 15;
+const MIN_DURATION_MINUTES = CONFIG.TIME_STEP;
 
 function snapToStep(value: number, step: number): number {
   return Math.round(value / step) * step;
@@ -17,7 +15,6 @@ function snapToStep(value: number, step: number): number {
 export function getStartBounds(
   endMin: number,
   others: { start: string; end: string }[],
-  step: number = GRID_STEP_MINUTES,
 ): [number, number] {
   const rightBound = endMin - MIN_DURATION_MINUTES;
   let minStart = WORKDAY_START_MIN;
@@ -27,8 +24,10 @@ export function getStartBounds(
     if (oEnd <= endMin && endMin > oStart) minStart = Math.max(minStart, oEnd);
   }
   const maxStart = Math.max(minStart, rightBound);
-  const minStartSnap = Math.ceil(minStart / step) * step;
-  const maxStartSnap = Math.floor(maxStart / step) * step;
+  const minStartSnap =
+    Math.ceil(minStart / CONFIG.TIME_STEP) * CONFIG.TIME_STEP;
+  const maxStartSnap =
+    Math.floor(maxStart / CONFIG.TIME_STEP) * CONFIG.TIME_STEP;
   return [minStartSnap, maxStartSnap];
 }
 
@@ -36,7 +35,6 @@ export function getStartBounds(
 export function getEndBounds(
   startMin: number,
   others: { start: string; end: string }[],
-  step: number = GRID_STEP_MINUTES,
 ): [number, number] {
   const leftBound = startMin + MIN_DURATION_MINUTES;
   let maxEnd = WORKDAY_END_MIN;
@@ -45,8 +43,8 @@ export function getEndBounds(
     const oEnd = minutesFromMidnight(new Date(o.end));
     if (oEnd > startMin) maxEnd = Math.min(maxEnd, oStart);
   }
-  const minEndSnap = Math.ceil(leftBound / step) * step;
-  const maxEndSnap = Math.floor(maxEnd / step) * step;
+  const minEndSnap = Math.ceil(leftBound / CONFIG.TIME_STEP) * CONFIG.TIME_STEP;
+  const maxEndSnap = Math.floor(maxEnd / CONFIG.TIME_STEP) * CONFIG.TIME_STEP;
   return [minEndSnap, maxEndSnap];
 }
 
@@ -55,9 +53,8 @@ export function clampMoveStart(
   proposedStart: number,
   duration: number,
   others: { start: string; end: string }[],
-  step: number = GRID_STEP_MINUTES,
 ): number {
-  let s = snapToStep(proposedStart, step);
+  let s = snapToStep(proposedStart, CONFIG.TIME_STEP);
   s = Math.max(WORKDAY_START_MIN, Math.min(WORKDAY_END_MIN - duration, s));
   const maxIterations = (others.length + 1) * 2;
   let iterations = 0;
@@ -70,9 +67,11 @@ export function clampMoveStart(
       const oEnd = minutesFromMidnight(new Date(o.end));
       if (s < oEnd && s + duration > oStart) {
         if (s < oStart) {
-          s = Math.floor((oStart - duration) / step) * step;
+          s =
+            Math.floor((oStart - duration) / CONFIG.TIME_STEP) *
+            CONFIG.TIME_STEP;
         } else {
-          s = Math.ceil(oEnd / step) * step;
+          s = Math.ceil(oEnd / CONFIG.TIME_STEP) * CONFIG.TIME_STEP;
         }
         changed = true;
         break;
@@ -80,7 +79,7 @@ export function clampMoveStart(
     }
   }
   s = Math.max(WORKDAY_START_MIN, Math.min(WORKDAY_END_MIN - duration, s));
-  return snapToStep(s, step);
+  return snapToStep(s, CONFIG.TIME_STEP);
 }
 
 /** Returns true if the interval [start, end] overlaps any of others (by minutes from midnight on the same day). */

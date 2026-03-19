@@ -1,5 +1,3 @@
-export const MINUTES_PER_DAY = 24 * 60;
-
 /** Workday: 8:00–19:00 (minutes from midnight and length in minutes) */
 export const WORKDAY_START_MIN = 8 * 60; // 480
 export const WORKDAY_END_MIN = 19 * 60; // 1140

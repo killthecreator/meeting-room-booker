@@ -2,8 +2,8 @@ import {
   formatShortDate,
   formatWeekday,
   isWeekend,
-} from "../../../lib/date-utils";
-import { cn } from "../../../lib/cn";
+} from "../../lib/date-utils";
+import { cn } from "../../lib/cn";
 
 type DayTableItemProps = {
   date: Date;

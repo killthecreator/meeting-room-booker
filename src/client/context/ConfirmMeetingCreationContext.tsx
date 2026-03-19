@@ -26,7 +26,7 @@ import {
   isWeekend,
   getNextWeekday,
   getPreviousWeekday,
-} from "../../lib/date-utils";
+} from "../lib/date-utils";
 
 type FormValues = {
   name: string;

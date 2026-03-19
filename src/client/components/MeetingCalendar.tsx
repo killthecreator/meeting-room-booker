@@ -7,8 +7,8 @@ import {
   getCalendarDays,
   formatDateForInput,
   TIMELINE_HOURS,
-} from "../../lib/date-utils";
-import { hasOverlap, GRID_STEP_MINUTES } from "../../lib/meeting-bounds";
+} from "../lib/date-utils";
+import { hasOverlap } from "../lib/meeting-bounds";
 import { CalendarHeader } from "./CalendarHeader";
 import { DayRow, type DraftMeeting } from "./DayRow";
 import { useConfirmMeetingCreation } from "../context/ConfirmMeetingCreationContext";
@@ -123,7 +123,7 @@ export function MeetingCalendar() {
         minutesFromMidnight(draftMeeting.end) -
         minutesFromMidnight(draftMeeting.start);
       const snapped =
-        Math.round(startMinutes / GRID_STEP_MINUTES) * GRID_STEP_MINUTES;
+        Math.round(startMinutes / CONFIG.TIME_STEP) * CONFIG.TIME_STEP;
       const start = setMinutesFromMidnight(date, snapped);
       const end = setMinutesFromMidnight(date, snapped + duration);
       setDraftMeeting((prev) => (prev ? { ...prev, date, start, end } : null));
