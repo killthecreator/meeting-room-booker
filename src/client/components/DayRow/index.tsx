@@ -284,7 +284,7 @@ export function DayRow({
       className={cn(
         "group/row border-secondary-100 relative flex h-14 border-b transition-colors duration-200",
         weekend && "bg-secondary-100/50 cursor-default",
-        today && "border-primary-200/60 z-[1]",
+        today && "border-primary-200/60 z-1",
       )}
       onClick={handleTimelineClick}
       onDragOver={handleDragOver}
