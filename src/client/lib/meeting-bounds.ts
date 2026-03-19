@@ -3,6 +3,7 @@ import {
   minutesFromMidnight,
   WORKDAY_START_MIN,
   WORKDAY_END_MIN,
+  roundToClosestStep,
 } from "./date-utils";
 
 const MIN_DURATION_MINUTES = CONFIG.TIME_STEP;
@@ -24,10 +25,9 @@ export function getStartBounds(
     if (oEnd <= endMin && endMin > oStart) minStart = Math.max(minStart, oEnd);
   }
   const maxStart = Math.max(minStart, rightBound);
-  const minStartSnap =
-    Math.ceil(minStart / CONFIG.TIME_STEP) * CONFIG.TIME_STEP;
-  const maxStartSnap =
-    Math.floor(maxStart / CONFIG.TIME_STEP) * CONFIG.TIME_STEP;
+  const minStartSnap = roundToClosestStep(minStart, "ceil");
+  const maxStartSnap = roundToClosestStep(maxStart, "floor");
+
   return [minStartSnap, maxStartSnap];
 }
 
@@ -43,8 +43,8 @@ export function getEndBounds(
     const oEnd = minutesFromMidnight(new Date(o.end));
     if (oEnd > startMin) maxEnd = Math.min(maxEnd, oStart);
   }
-  const minEndSnap = Math.ceil(leftBound / CONFIG.TIME_STEP) * CONFIG.TIME_STEP;
-  const maxEndSnap = Math.floor(maxEnd / CONFIG.TIME_STEP) * CONFIG.TIME_STEP;
+  const minEndSnap = roundToClosestStep(leftBound, "ceil");
+  const maxEndSnap = roundToClosestStep(maxEnd, "floor");
   return [minEndSnap, maxEndSnap];
 }
 
@@ -67,11 +67,9 @@ export function clampMoveStart(
       const oEnd = minutesFromMidnight(new Date(o.end));
       if (s < oEnd && s + duration > oStart) {
         if (s < oStart) {
-          s =
-            Math.floor((oStart - duration) / CONFIG.TIME_STEP) *
-            CONFIG.TIME_STEP;
+          s = roundToClosestStep(oStart - duration, "floor");
         } else {
-          s = Math.ceil(oEnd / CONFIG.TIME_STEP) * CONFIG.TIME_STEP;
+          s = roundToClosestStep(oEnd, "ceil");
         }
         changed = true;
         break;

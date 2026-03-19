@@ -7,6 +7,7 @@ import {
   getCalendarDays,
   formatDateForInput,
   TIMELINE_HOURS,
+  roundToClosestStep,
 } from "../lib/date-utils";
 import { hasOverlap } from "../lib/meeting-bounds";
 import { CalendarHeader } from "./CalendarHeader";
@@ -122,8 +123,8 @@ export function MeetingCalendar() {
       const duration =
         minutesFromMidnight(draftMeeting.end) -
         minutesFromMidnight(draftMeeting.start);
-      const snapped =
-        Math.round(startMinutes / CONFIG.TIME_STEP) * CONFIG.TIME_STEP;
+      const snapped = roundToClosestStep(startMinutes);
+
       const start = setMinutesFromMidnight(date, snapped);
       const end = setMinutesFromMidnight(date, snapped + duration);
       setDraftMeeting((prev) => (prev ? { ...prev, date, start, end } : null));
@@ -137,7 +138,7 @@ export function MeetingCalendar() {
       className="animate-fade-in shadow-primary-900/5 relative flex h-fit max-h-[90vh] w-[90vw] justify-center overflow-auto rounded-2xl border border-white/60 bg-white/80 shadow-xl backdrop-blur-xl"
       style={{
         maxWidth:
-          VERT_HEADER_CELL_WIDTH + CONTENT_CELL_WIDTH * TIMELINE_HOURS + 2,
+          VERT_HEADER_CELL_WIDTH + CONTENT_CELL_WIDTH * TIMELINE_HOURS + 2, // some random shift. idk why,
       }}
     >
       <table className="block w-full border-collapse overflow-auto rounded-2xl">

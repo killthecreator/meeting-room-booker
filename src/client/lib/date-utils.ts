@@ -1,3 +1,5 @@
+import { CONFIG } from "../config";
+
 /** Workday: 8:00–19:00 (minutes from midnight and length in minutes) */
 export const WORKDAY_START_MIN = 8 * 60; // 480
 export const WORKDAY_END_MIN = 19 * 60; // 1140
@@ -16,6 +18,20 @@ export function dayKey(d: Date): string {
 /** Date format for input type="date" (YYYY-MM-DD) */
 export function formatDateForInput(d: Date): string {
   return dayKey(d);
+}
+
+export function roundToClosestStep(
+  minutes: number,
+  roundStrategy?: "floor" | "ceil",
+) {
+  const method = roundStrategy ?? "round";
+  return Math[method](minutes / CONFIG.TIME_STEP) * CONFIG.TIME_STEP;
+}
+
+export function isToday(d: Date): boolean {
+  const today = new Date();
+  const dateClone = new Date(d);
+  return dateClone.setHours(0, 0, 0, 0) === today.setHours(0, 0, 0, 0);
 }
 
 /** Monday of the week containing date d (getDay: 0=Sun, 1=Mon, …) */
@@ -39,9 +55,9 @@ export function getCurrentWeekDays(d: Date): Date[] {
 }
 
 /** Mon–Sun for the given number of weeks starting from the week containing d */
-export function getCalendarDays(d: Date, weekCount: number = 2): Date[] {
+export function getCalendarDays(d: Date): Date[] {
   const monday = getMondayOfWeek(d);
-  const totalDays = weekCount * 7;
+  const totalDays = CONFIG.WEEKS_TO_SHOW * 7;
   return Array.from({ length: totalDays }, (_, i) => {
     const date = new Date(monday);
     date.setDate(monday.getDate() + i);

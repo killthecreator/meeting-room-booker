@@ -20,6 +20,7 @@ import {
   WORKDAY_END_MIN,
   TIMELINE_MINUTES,
   setMinutesFromMidnight,
+  roundToClosestStep,
 } from "../../lib/date-utils";
 import {
   clampMoveStart,
@@ -33,9 +34,6 @@ import { DayTableItem } from "./DayTableItem";
 import { TimePerDayDistribution } from "./TimePerDayDistribution";
 import { useMeetings } from "../../context/MeetingsContext";
 import { CONFIG } from "../../config";
-
-/** Step in minutes for the timeline (15 minutes) */
-const STEP = 15;
 
 export type DraftMeeting = {
   date: Date;
@@ -82,7 +80,7 @@ export function DayRow({
       const othersOnTargetDay = meetings.filter(
         (m) => dayKey(new Date(m.start)) === targetDayKey && m.id !== meetingId,
       );
-      const snapped = Math.round(startMinutes / STEP) * STEP;
+      const snapped = roundToClosestStep(startMinutes);
       const clampedStart = clampMoveStart(snapped, duration, othersOnTargetDay);
       const start = setMinutesFromMidnight(date, clampedStart);
       const end = setMinutesFromMidnight(date, clampedStart + duration);
@@ -120,13 +118,13 @@ export function DayRow({
 
       if (newStartMin !== null) {
         const [minStart, maxStart] = getStartBounds(endMin, others);
-        const snapped = Math.round(newStartMin / STEP) * STEP;
+        const snapped = roundToClosestStep(newStartMin);
         const clamped = Math.max(minStart, Math.min(maxStart, snapped));
         start = setMinutesFromMidnight(startDate, clamped);
       }
       if (newEndMin !== null) {
         const [minEnd, maxEnd] = getEndBounds(startMin, others);
-        const snapped = Math.round(newEndMin / STEP) * STEP;
+        const snapped = roundToClosestStep(newEndMin);
         const clamped = Math.max(minEnd, Math.min(maxEnd, snapped));
         end = setMinutesFromMidnight(endDate, clamped);
       }
@@ -223,7 +221,8 @@ export function DayRow({
       const dropX = blockLeftScreen - rect.left;
       const pct = Math.max(0, Math.min(1, dropX / rect.width));
       const startMinutes = WORKDAY_START_MIN + pct * TIMELINE_MINUTES;
-      const snapped = Math.round(startMinutes / STEP) * STEP;
+      const snapped = roundToClosestStep(startMinutes);
+
       const clamped = Math.max(
         WORKDAY_START_MIN,
         Math.min(WORKDAY_END_MIN - 15, snapped),
@@ -250,8 +249,11 @@ export function DayRow({
     const x = e.clientX - rect.left;
     const pct = Math.max(0, Math.min(1, x / rect.width));
     const clickMinutes = WORKDAY_START_MIN + pct * TIMELINE_MINUTES;
-    const startMinutesToClosestLeftBorder =
-      Math.floor(clickMinutes / STEP) * STEP;
+    const startMinutesToClosestLeftBorder = roundToClosestStep(
+      clickMinutes,
+      "floor",
+    );
+
     const clamped = Math.max(
       WORKDAY_START_MIN,
       Math.min(WORKDAY_END_MIN - 15, startMinutesToClosestLeftBorder),

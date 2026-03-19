@@ -1,6 +1,7 @@
 import {
   formatShortDate,
   formatWeekday,
+  isToday,
   isWeekend,
 } from "../../lib/date-utils";
 import { cn } from "../../lib/cn";
@@ -10,6 +11,7 @@ type DayTableItemProps = {
 };
 export function DayTableItem({ date }: DayTableItemProps) {
   const weekend = isWeekend(date);
+  const isCurDay = isToday(date);
   return (
     <td
       className={cn(
@@ -20,7 +22,7 @@ export function DayTableItem({ date }: DayTableItemProps) {
       )}
       onClick={(e) => e.stopPropagation()}
     >
-      <div className="flex flex-col items-center gap-0.5 text-center">
+      <div className={cn("flex flex-col items-center gap-0.5 text-center")}>
         <span
           className={cn(
             "text-[13px] font-semibold tracking-tight",

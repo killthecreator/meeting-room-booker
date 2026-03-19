@@ -7,6 +7,7 @@ import {
   WORKDAY_START_MIN,
   WORKDAY_END_MIN,
   TIMELINE_MINUTES,
+  roundToClosestStep,
 } from "../../lib/date-utils";
 import { MeetingTooltip } from "./MeetingTooltip";
 import { cn } from "../../lib/cn";
@@ -15,7 +16,6 @@ import { useMeetings } from "../../context/MeetingsContext";
 import { useAuth } from "../../context/AuthContext";
 
 const DRAG_THRESHOLD_PX = 8;
-const STEP = 15;
 
 export type MeetingBlockProps = {
   meeting: MeetingDTO;
@@ -142,7 +142,8 @@ export function MeetingBlock({
         const dropX = blockLeftScreen - cellRect.left;
         const pct = Math.max(0, Math.min(1, dropX / cellRect.width));
         const startMinutes = WORKDAY_START_MIN + pct * TIMELINE_MINUTES;
-        const snapped = Math.round(startMinutes / STEP) * STEP;
+        const snapped = roundToClosestStep(startMinutes);
+
         const clamped = Math.max(
           WORKDAY_START_MIN,
           Math.min(WORKDAY_END_MIN - 15, snapped),
