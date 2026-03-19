@@ -5,6 +5,9 @@ import authRouter from "./routes/auth/auth.routes";
 import { ipCheckMiddleware } from "./middlewares/ipCheckMiddleware";
 import morgan from "morgan";
 import { limiter } from "./middlewares/rateLimitter";
+import { errorHandler } from "./middlewares/errorHandler";
+import { errorLogger } from "./middlewares/errorLogger";
+import { authMiddleware } from "./middlewares/authMiddleware";
 
 const app = express();
 app.set("trust proxy", 1);
@@ -18,7 +21,9 @@ app.use(express.static("dist", { index: false }));
 
 app.use(morgan("tiny"));
 app.use("/api/auth", authRouter);
+app.use(authMiddleware);
 app.use("/api/meetings", meetingRouter);
+app.use(errorLogger).use(errorHandler);
 
 const PORT = Number(process.env.PORT) || 3001;
 app.listen(PORT, () => {

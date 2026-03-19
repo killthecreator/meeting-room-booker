@@ -4,6 +4,7 @@ import type {
   UpdateMeetingDTO,
 } from "../../../types/Meeting.type";
 import db from "../../db";
+import { NotFoundError } from "../../lib/customErrors";
 
 // MOVE
 const dbMeetingToMeetingDTO = z
@@ -40,7 +41,7 @@ export const meetingsService = {
   getById(id: string) {
     const record = db.prepare("SELECT * FROM meetings WHERE id = ?").get(id);
 
-    if (!record) throw Error("asdsa");
+    if (!record) throw new NotFoundError("Meeting not found");
 
     return dbMeetingToMeetingDTO.parse(record);
   },

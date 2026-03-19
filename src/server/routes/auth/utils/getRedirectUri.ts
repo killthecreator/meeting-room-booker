@@ -1,6 +1,7 @@
 import type { Request } from "express";
+import { CONFIG } from "../../../config";
 
-const GOOGLE_REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI;
+const { GOOGLE_REDIRECT_URI } = CONFIG;
 
 export function getRedirectUri(req: Request): string {
   if (GOOGLE_REDIRECT_URI) return GOOGLE_REDIRECT_URI;

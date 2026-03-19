@@ -4,16 +4,16 @@ import { getRedirectUri } from "./utils/getRedirectUri";
 import crypto from "crypto";
 import { decodeJwtPayload } from "./utils/decodeJwtPayload";
 import { googleAuthSchema } from "../../../schemas/authUser";
+import { CONFIG } from "../../config";
 
 const {
   GOOGLE_CLIENT_ID,
   GOOGLE_CLIENT_SECRET,
   ALLOWED_GOOGLE_DOMAIN,
-  FRONTEND_ORIGIN = "http://localhost:5173",
-} = process.env;
-
-const GOOGLE_AUTHORIZE = "https://accounts.google.com/o/oauth2/v2/auth";
-const GOOGLE_TOKEN = "https://oauth2.googleapis.com/token";
+  FRONTEND_ORIGIN,
+  GOOGLE_TOKEN,
+  GOOGLE_AUTHORIZE,
+} = CONFIG;
 
 const stateStore = new Map<string, { createdAt: number }>();
 
