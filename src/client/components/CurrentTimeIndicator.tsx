@@ -1,10 +1,9 @@
 import { useEffect, useState } from "react";
+import { minutesFromMidnight } from "../lib/date-utils";
 import {
-  minutesFromMidnight,
-  WORKDAY_START_MIN,
-  WORKDAY_END_MIN,
-  TIMELINE_MINUTES,
-} from "../lib/date-utils";
+  isCurrentTimeOnTimeline,
+  minutesToTimelinePercent,
+} from "../lib/timeline";
 
 export function CurrentTimeIndicator() {
   const [now, setNow] = useState(() => new Date());
@@ -15,9 +14,9 @@ export function CurrentTimeIndicator() {
   }, []);
 
   const mins = minutesFromMidnight(now);
-  if (mins < WORKDAY_START_MIN || mins > WORKDAY_END_MIN) return null;
+  if (!isCurrentTimeOnTimeline(mins)) return null;
 
-  const pct = ((mins - WORKDAY_START_MIN) / TIMELINE_MINUTES) * 100;
+  const pct = minutesToTimelinePercent(mins);
 
   return (
     <div

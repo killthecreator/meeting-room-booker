@@ -17,12 +17,14 @@ import {
   dayKey,
   isWeekend,
   isToday,
-  WORKDAY_START_MIN,
-  WORKDAY_END_MIN,
-  TIMELINE_MINUTES,
   setMinutesFromMidnight,
   roundToClosestStep,
 } from "../../lib/date-utils";
+import {
+  snapPointerMinutesOnTimeline,
+  snapSlotClickToTimelineMinutes,
+  clampNewSlotStartMinutes,
+} from "../../lib/timeline";
 import {
   clampMoveStart,
   getEndBounds,
@@ -35,7 +37,6 @@ import { DayTableItem } from "./DayTableItem";
 import { TimePerDayDistribution } from "./TimePerDayDistribution";
 import { CurrentTimeIndicator } from "../CurrentTimeIndicator";
 import { useMeetings } from "../../context/MeetingsContext";
-import { CONFIG } from "../../config";
 
 export type DraftMeeting = {
   date: Date;
@@ -159,12 +160,7 @@ export function DayRow({
       if ("touches" in e) e.preventDefault();
       const rect = cell.getBoundingClientRect();
       const x = getClientX(e) - rect.left;
-      const pct = Math.max(0, Math.min(1, x / rect.width));
-      const rawMinutes = WORKDAY_START_MIN + pct * TIMELINE_MINUTES;
-      const minutes =
-        WORKDAY_START_MIN +
-        Math.round((rawMinutes - WORKDAY_START_MIN) / CONFIG.TIME_STEP) *
-          CONFIG.TIME_STEP;
+      const minutes = snapPointerMinutesOnTimeline(x, rect.width);
       if (drag.edge === "left") {
         handleResize(drag.meetingId, minutes, null);
       } else {
@@ -222,14 +218,8 @@ export function DayRow({
       const offsetX = parseFloat(e.dataTransfer.getData("dragOffsetX") || "0");
       const blockLeftScreen = e.clientX - offsetX;
       const dropX = blockLeftScreen - rect.left;
-      const pct = Math.max(0, Math.min(1, dropX / rect.width));
-      const startMinutes = WORKDAY_START_MIN + pct * TIMELINE_MINUTES;
-      const snapped = roundToClosestStep(startMinutes);
-
-      const clamped = Math.max(
-        WORKDAY_START_MIN,
-        Math.min(WORKDAY_END_MIN - 15, snapped),
-      );
+      const snapped = snapPointerMinutesOnTimeline(dropX, rect.width);
+      const clamped = clampNewSlotStartMinutes(snapped);
       if (meetingId === DRAFT_MEETING_ID) {
         onDraftDrop(date, clamped);
       } else {
@@ -250,17 +240,8 @@ export function DayRow({
     if (!cell) return;
     const rect = cell.getBoundingClientRect();
     const x = e.clientX - rect.left;
-    const pct = Math.max(0, Math.min(1, x / rect.width));
-    const clickMinutes = WORKDAY_START_MIN + pct * TIMELINE_MINUTES;
-    const startMinutesToClosestLeftBorder = roundToClosestStep(
-      clickMinutes,
-      "floor",
-    );
-
-    const clamped = Math.max(
-      WORKDAY_START_MIN,
-      Math.min(WORKDAY_END_MIN - 15, startMinutesToClosestLeftBorder),
-    );
+    const snapped = snapSlotClickToTimelineMinutes(x, rect.width);
+    const clamped = clampNewSlotStartMinutes(snapped);
 
     onSlotClick(date, clamped);
   };

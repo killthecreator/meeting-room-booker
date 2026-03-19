@@ -18,13 +18,16 @@ import {
   formatMinutesAsTime,
   formatDateForInput,
   parseDateInput,
-  WORKDAY_END_MIN,
-  WORKDAY_START_MIN,
   minutesFromMidnight,
   isWeekend,
   getNextWeekday,
   getPreviousWeekday,
 } from "../lib/date-utils";
+import {
+  getDefaultMeetingFormTimeStrings,
+  getTimeInputMinMaxStrings,
+  endTimeInputMinFromStartTimeStr,
+} from "../lib/timeline";
 
 type FormValues = {
   name: string;
@@ -82,12 +85,15 @@ export const ConfirmMeetingCreationProvider = ({
   children,
 }: ConfirmMeetingCreationProviderProps) => {
   const [options, setOptions] = useState<ConfirmOptions | null>(null);
-  const [formValues, setFormValues] = useState<FormValues>({
-    name: "New meeting",
-    description: "",
-    date: formatDateForInput(new Date()),
-    start: formatMinutesAsTime(WORKDAY_START_MIN),
-    end: formatMinutesAsTime(WORKDAY_START_MIN + 60),
+  const [formValues, setFormValues] = useState<FormValues>(() => {
+    const defaults = getDefaultMeetingFormTimeStrings();
+    return {
+      name: "New meeting",
+      description: "",
+      date: formatDateForInput(new Date()),
+      start: defaults.start,
+      end: defaults.end,
+    };
   });
   const [overlapError, setOverlapError] = useState<string | null>(null);
   const awaitingPromiseRef = useRef<{
@@ -103,6 +109,8 @@ export const ConfirmMeetingCreationProvider = ({
   useEffect(() => {
     optionsRef.current = options;
   }, [options]);
+
+  const timeInputBounds = useMemo(() => getTimeInputMinMaxStrings(), []);
 
   const MODAL_WIDTH = 300;
   const GAP = 8;
@@ -149,12 +157,13 @@ export const ConfirmMeetingCreationProvider = ({
       if (opts.minDate && dateStr < opts.minDate) dateStr = opts.minDate;
       if (opts.maxDate && dateStr > opts.maxDate) dateStr = opts.maxDate;
     }
+    const defaults = getDefaultMeetingFormTimeStrings();
     const startStr = opts.start
       ? formatMinutesAsTime(minutesFromMidnight(opts.start))
-      : formatMinutesAsTime(WORKDAY_START_MIN);
+      : defaults.start;
     const endStr = opts.end
       ? formatMinutesAsTime(minutesFromMidnight(opts.end))
-      : formatMinutesAsTime(WORKDAY_START_MIN + 60);
+      : defaults.end;
     setFormValues((prev) => ({
       ...prev,
       name: "New meeting",
@@ -173,12 +182,15 @@ export const ConfirmMeetingCreationProvider = ({
     }
     setOverlapError(null);
     setModalPosition(null);
-    setFormValues((prev) => ({
-      ...prev,
-      date: formatDateForInput(new Date()),
-      start: formatMinutesAsTime(WORKDAY_START_MIN),
-      end: formatMinutesAsTime(WORKDAY_START_MIN + 60),
-    }));
+    setFormValues((prev) => {
+      const d = getDefaultMeetingFormTimeStrings();
+      return {
+        ...prev,
+        date: formatDateForInput(new Date()),
+        start: d.start,
+        end: d.end,
+      };
+    });
     dialogRef.current?.close();
     setOptions(null);
   }, []);
@@ -394,8 +406,8 @@ export const ConfirmMeetingCreationProvider = ({
                     name="start"
                     type="time"
                     step={900}
-                    min={formatMinutesAsTime(WORKDAY_START_MIN)}
-                    max={formatMinutesAsTime(WORKDAY_END_MIN - 15)}
+                    min={timeInputBounds.startMin}
+                    max={timeInputBounds.startMax}
                     onChange={handleFormChange}
                     value={formValues.start}
                     className="border-secondary-200 text-secondary-900 focus:border-primary-400 focus:ring-primary-100 flex-1 rounded-xl border bg-white px-3 py-2 text-sm shadow-sm transition-colors duration-150 focus:ring-2 focus:outline-none"
@@ -406,14 +418,8 @@ export const ConfirmMeetingCreationProvider = ({
                     name="end"
                     type="time"
                     step={900}
-                    min={(() => {
-                      const [h, m] = formValues.start.split(":").map(Number);
-                      const startMins = h * 60 + m;
-                      return formatMinutesAsTime(
-                        Math.min(startMins + 15, WORKDAY_END_MIN),
-                      );
-                    })()}
-                    max={formatMinutesAsTime(WORKDAY_END_MIN)}
+                    min={endTimeInputMinFromStartTimeStr(formValues.start)}
+                    max={timeInputBounds.endMax}
                     onChange={handleFormChange}
                     value={formValues.end}
                     required

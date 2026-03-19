@@ -1,14 +1,11 @@
 import { useRef, useState, useCallback } from "react";
 import type { MeetingDTO } from "../../../types/Meeting.type";
+import { minutesFromMidnight, parseDateInput, isWeekend } from "../../lib/date-utils";
 import {
-  minutesFromMidnight,
-  parseDateInput,
-  isWeekend,
-  WORKDAY_START_MIN,
-  WORKDAY_END_MIN,
-  TIMELINE_MINUTES,
-  roundToClosestStep,
-} from "../../lib/date-utils";
+  getMeetingBlockLayoutPercent,
+  snapPointerMinutesOnTimeline,
+  clampNewSlotStartMinutes,
+} from "../../lib/timeline";
 import { MeetingTooltip } from "./MeetingTooltip";
 import { cn } from "../../lib/cn";
 import { Resizer } from "./Resizer";
@@ -50,13 +47,10 @@ export function MeetingBlock({
 
   const startMin = minutesFromMidnight(new Date(meeting.start));
   const endMin = minutesFromMidnight(new Date(meeting.end));
-  const visibleStart = Math.max(startMin, WORKDAY_START_MIN);
-  const visibleEnd = Math.min(endMin, WORKDAY_END_MIN);
-  const left = ((visibleStart - WORKDAY_START_MIN) / TIMELINE_MINUTES) * 100;
-  const width =
-    visibleEnd > visibleStart
-      ? ((visibleEnd - visibleStart) / TIMELINE_MINUTES) * 100
-      : 0;
+  const { leftPct: left, widthPct: width } = getMeetingBlockLayoutPercent(
+    startMin,
+    endMin,
+  );
 
   const handleDragStart = (e: React.DragEvent) => {
     setIsDragging(true);
@@ -140,14 +134,8 @@ export function MeetingBlock({
         const cellRect = timelineCell.getBoundingClientRect();
         const blockLeftScreen = t.clientX - data.offsetX;
         const dropX = blockLeftScreen - cellRect.left;
-        const pct = Math.max(0, Math.min(1, dropX / cellRect.width));
-        const startMinutes = WORKDAY_START_MIN + pct * TIMELINE_MINUTES;
-        const snapped = roundToClosestStep(startMinutes);
-
-        const clamped = Math.max(
-          WORKDAY_START_MIN,
-          Math.min(WORKDAY_END_MIN - 15, snapped),
-        );
+        const snapped = snapPointerMinutesOnTimeline(dropX, cellRect.width);
+        const clamped = clampNewSlotStartMinutes(snapped);
 
         onMeetingDrop(targetDate, clamped, meeting.id);
         onTouchDragEnd?.();

@@ -18,7 +18,12 @@ import { useMeetings } from "../context/MeetingsContext";
 import type { MeetingDTO } from "../../types/Meeting.type";
 import { CONFIG } from "../config";
 
-const { TIME_STEP, VERT_HEADER_CELL_WIDTH, CONTENT_CELL_WIDTH } = CONFIG;
+const {
+  TIME_STEP,
+  VERT_HEADER_CELL_WIDTH,
+  CONTENT_CELL_WIDTH,
+  DEFAULT_MEETING_DURATION_MIN,
+} = CONFIG;
 
 export function MeetingCalendar() {
   const { user: authUser } = useAuth();
@@ -52,9 +57,10 @@ export function MeetingCalendar() {
         touchDragEndRef.current = false;
         return;
       }
-      const snappedStart = Math.round(startMinutes / TIME_STEP) * TIME_STEP;
-      const defaultEnd =
-        Math.round((startMinutes + 60) / TIME_STEP) * TIME_STEP;
+      const snappedStart = roundToClosestStep(startMinutes);
+      const defaultEnd = roundToClosestStep(
+        startMinutes + DEFAULT_MEETING_DURATION_MIN,
+      );
       const snappedEnd = Math.min(defaultEnd, WORKDAY_END_MIN);
       const start = setMinutesFromMidnight(date, snappedStart);
       const end = setMinutesFromMidnight(date, snappedEnd);
