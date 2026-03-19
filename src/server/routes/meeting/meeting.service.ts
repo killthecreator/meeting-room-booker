@@ -1,37 +1,10 @@
-import z from "zod";
 import type {
   CreateMeetingDTO,
   UpdateMeetingDTO,
 } from "../../../types/Meeting.type";
 import db from "../../db";
 import { NotFoundError } from "../../lib/customErrors";
-
-// MOVE
-const dbMeetingToMeetingDTO = z
-  .object({
-    id: z.string(),
-    name: z.string(),
-    description: z.string(),
-    ownerId: z.string(),
-    ownerName: z.string(),
-    ownerEmail: z.email(),
-    ownerPicture: z.url(),
-    start: z.iso.datetime(),
-    end: z.iso.datetime(),
-  })
-  .transform((record) => ({
-    id: record.id,
-    name: record.name,
-    description: record.description,
-    start: record.start,
-    end: record.end,
-    owner: {
-      id: record.ownerId,
-      name: record.ownerName,
-      email: record.ownerEmail,
-      picture: record.ownerPicture,
-    },
-  }));
+import { dbMeetingToMeetingDTO } from "../../schemas/meeting.schema";
 
 export const meetingsService = {
   getAll() {
@@ -69,14 +42,18 @@ export const meetingsService = {
   },
 
   update(id: string, data: UpdateMeetingDTO) {
+    const entries = Object.entries(data);
+    if (entries.length === 0) return this.getById(id);
+
+    this.getById(id);
+
     const updates: string[] = [];
     const values: (number | string)[] = [];
 
-    Object.entries(data).forEach(([key, value]) => {
+    for (const [key, value] of entries) {
       updates.push(`${key} = ?`);
       values.push(value);
-    });
-
+    }
     values.push(id);
 
     db.prepare(`UPDATE meetings SET ${updates.join(", ")} WHERE id = ?`).run(
@@ -87,6 +64,7 @@ export const meetingsService = {
   },
 
   deleteById(id: string) {
+    this.getById(id);
     db.prepare("DELETE FROM meetings WHERE id = ?").run(id);
   },
 };

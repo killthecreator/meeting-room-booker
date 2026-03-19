@@ -1,7 +1,8 @@
 import type { RequestHandler } from "express";
-import { AutherntificationError } from "../lib/customErrors";
+import { AuthenticationError } from "../lib/customErrors";
+import { getAuthToken } from "../routes/auth/utils/getAuthToken";
 
 export const authMiddleware: RequestHandler = (req, _res, next) => {
-  if (!req.cookies?.session) throw new AutherntificationError("Unauthorized");
+  if (!getAuthToken(req)) throw new AuthenticationError("Unauthorized");
   next();
 };

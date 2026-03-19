@@ -22,9 +22,9 @@ export class ValidationError extends ApiError {
   }
 }
 
-export class AutherntificationError extends ApiError {
+export class AuthenticationError extends ApiError {
   constructor(message: string) {
     super(message, 401);
-    this.name = "AutherntificationError";
+    this.name = "AuthenticationError";
   }
 }

@@ -5,6 +5,7 @@ import crypto from "crypto";
 import { decodeJwtPayload } from "./utils/decodeJwtPayload";
 import { googleAuthSchema } from "../../../schemas/authUser";
 import { CONFIG } from "../../config";
+import { getAuthToken } from "./utils/getAuthToken";
 
 const {
   GOOGLE_CLIENT_ID,
@@ -120,9 +121,7 @@ export const authController = {
     res.redirect(`${GOOGLE_AUTHORIZE}?${params.toString()}`);
   },
   getMe(req, res) {
-    const token =
-      req.cookies?.session ||
-      (req.get("Authorization") || "").replace(/^Bearer\s+/i, "").trim();
+    const token = getAuthToken(req);
     if (!token) {
       return res.status(401).json({ error: "Not signed in" });
     }

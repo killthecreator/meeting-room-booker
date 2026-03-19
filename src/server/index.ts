@@ -25,8 +25,17 @@ app.use(authMiddleware);
 app.use("/api/meetings", meetingRouter);
 app.use(errorLogger).use(errorHandler);
 
+app.get("/health", (_req, res) => {
+  const healthcheck = {
+    uptime: process.uptime(),
+    message: "OK",
+    timestamp: Date.now(),
+  };
+  res.send(healthcheck);
+});
+
 const PORT = Number(process.env.PORT) || 3001;
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log("Server listening on", PORT);
 
   const redirectUri =
@@ -43,4 +52,12 @@ app.listen(PORT, () => {
       "ALLOWED_GOOGLE_DOMAIN not set — any Google account will be accepted.",
     );
   }
+});
+
+// Graceful shutdown
+process.on("SIGTERM", () => {
+  console.debug("SIGTERM signal received: closing HTTP server");
+  server.close(() => {
+    console.debug("HTTP server closed");
+  });
 });
