@@ -57,36 +57,8 @@ export function clampNewSlotStartMinutes(snappedMinutes: number): number {
   );
 }
 
-/** Default "start" / "end" strings for create-meeting form. */
-export function getDefaultMeetingFormTimeStrings(): {
-  start: string;
-  end: string;
-} {
-  return {
-    start: formatMinutesAsTime(WORKDAY_START_MIN),
-    end: formatMinutesAsTime(
-      WORKDAY_START_MIN + CONFIG.DEFAULT_MEETING_DURATION_MIN,
-    ),
-  };
-}
-
-/** Min/max for `<input type="time">` on the create form. */
-export function getTimeInputMinMaxStrings(): {
-  startMin: string;
-  startMax: string;
-  endMax: string;
-} {
-  return {
-    startMin: formatMinutesAsTime(WORKDAY_START_MIN),
-    startMax: formatMinutesAsTime(LATEST_SLOT_START_MIN),
-    endMax: formatMinutesAsTime(WORKDAY_END_MIN),
-  };
-}
-
 /** Minimum allowed end time given start "HH:mm", for paired time inputs. */
-export function endTimeInputMinFromStartTimeStr(
-  startTimeStr: string,
-): string {
+export function endTimeInputMinFromStartTimeStr(startTimeStr: string): string {
   const [h, m] = startTimeStr.split(":").map(Number);
   const startMins = h * 60 + m;
   return formatMinutesAsTime(

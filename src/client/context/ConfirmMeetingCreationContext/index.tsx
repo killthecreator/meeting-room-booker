@@ -22,12 +22,12 @@ import {
   isWeekend,
   getNextWeekday,
   getPreviousWeekday,
-} from "../lib/date-utils";
-import {
-  getDefaultMeetingFormTimeStrings,
-  getTimeInputMinMaxStrings,
-  endTimeInputMinFromStartTimeStr,
-} from "../lib/timeline";
+} from "../../lib/date-utils";
+import { endTimeInputMinFromStartTimeStr } from "../../lib/timeline";
+import { CONFIG } from "../../config";
+import InputTime from "./InputTime";
+import { TIME_INPUT_BOUNDS } from "./timeInputBounds";
+import { DEFAULT_MEETING_FORM_TIME_STRINGS } from "./defaultMeetingFormTimeStrings";
 
 type FormValues = {
   name: string;
@@ -86,13 +86,12 @@ export const ConfirmMeetingCreationProvider = ({
 }: ConfirmMeetingCreationProviderProps) => {
   const [options, setOptions] = useState<ConfirmOptions | null>(null);
   const [formValues, setFormValues] = useState<FormValues>(() => {
-    const defaults = getDefaultMeetingFormTimeStrings();
     return {
       name: "New meeting",
       description: "",
       date: formatDateForInput(new Date()),
-      start: defaults.start,
-      end: defaults.end,
+      start: DEFAULT_MEETING_FORM_TIME_STRINGS.START,
+      end: DEFAULT_MEETING_FORM_TIME_STRINGS.END,
     };
   });
   const [overlapError, setOverlapError] = useState<string | null>(null);
@@ -109,8 +108,6 @@ export const ConfirmMeetingCreationProvider = ({
   useEffect(() => {
     optionsRef.current = options;
   }, [options]);
-
-  const timeInputBounds = useMemo(() => getTimeInputMinMaxStrings(), []);
 
   const MODAL_WIDTH = 300;
   const GAP = 8;
@@ -157,13 +154,13 @@ export const ConfirmMeetingCreationProvider = ({
       if (opts.minDate && dateStr < opts.minDate) dateStr = opts.minDate;
       if (opts.maxDate && dateStr > opts.maxDate) dateStr = opts.maxDate;
     }
-    const defaults = getDefaultMeetingFormTimeStrings();
+
     const startStr = opts.start
       ? formatMinutesAsTime(minutesFromMidnight(opts.start))
-      : defaults.start;
+      : DEFAULT_MEETING_FORM_TIME_STRINGS.START;
     const endStr = opts.end
       ? formatMinutesAsTime(minutesFromMidnight(opts.end))
-      : defaults.end;
+      : DEFAULT_MEETING_FORM_TIME_STRINGS.END;
     setFormValues((prev) => ({
       ...prev,
       name: "New meeting",
@@ -183,12 +180,11 @@ export const ConfirmMeetingCreationProvider = ({
     setOverlapError(null);
     setModalPosition(null);
     setFormValues((prev) => {
-      const d = getDefaultMeetingFormTimeStrings();
       return {
         ...prev,
         date: formatDateForInput(new Date()),
-        start: d.start,
-        end: d.end,
+        start: DEFAULT_MEETING_FORM_TIME_STRINGS.START,
+        end: DEFAULT_MEETING_FORM_TIME_STRINGS.END,
       };
     });
     dialogRef.current?.close();
@@ -219,7 +215,7 @@ export const ConfirmMeetingCreationProvider = ({
         return;
       }
       const durationMs = end.getTime() - start.getTime();
-      if (durationMs < 15 * 60 * 1000) {
+      if (durationMs < CONFIG.TIME_STEP * 60 * 1000) {
         setOverlapError("Meeting must be at least 15 minutes.");
         return;
       }
@@ -402,28 +398,20 @@ export const ConfirmMeetingCreationProvider = ({
                   />
                 </div>
                 <div className="flex items-center gap-2">
-                  <input
+                  <InputTime
                     name="start"
-                    type="time"
-                    step={900}
-                    min={timeInputBounds.startMin}
-                    max={timeInputBounds.startMax}
+                    min={TIME_INPUT_BOUNDS.START_MIN}
+                    max={TIME_INPUT_BOUNDS.START_MAX}
                     onChange={handleFormChange}
                     value={formValues.start}
-                    className="border-secondary-200 text-secondary-900 focus:border-primary-400 focus:ring-primary-100 flex-1 rounded-xl border bg-white px-3 py-2 text-sm shadow-sm transition-colors duration-150 focus:ring-2 focus:outline-none"
-                    required
                   />
                   <span className="text-secondary-400 text-sm">–</span>
-                  <input
+                  <InputTime
                     name="end"
-                    type="time"
-                    step={900}
                     min={endTimeInputMinFromStartTimeStr(formValues.start)}
-                    max={timeInputBounds.endMax}
+                    max={TIME_INPUT_BOUNDS.END_MAX}
                     onChange={handleFormChange}
                     value={formValues.end}
-                    required
-                    className="border-secondary-200 text-secondary-900 focus:border-primary-400 focus:ring-primary-100 flex-1 rounded-xl border bg-white px-3 py-2 text-sm shadow-sm transition-colors duration-150 focus:ring-2 focus:outline-none"
                   />
                 </div>
 
