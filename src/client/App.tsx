@@ -5,7 +5,7 @@ import { AuthProvider, useAuth } from "./context/AuthContext";
 import { MeetingsProvider } from "./context/MeetingsContext";
 import Header from "./components/Header";
 import { api } from "./api";
-import { Suspense } from "react";
+import { cache, Suspense } from "react";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 
 const LoadingFallback = () => {
@@ -21,14 +21,15 @@ const LoadingFallback = () => {
   );
 };
 
+const cachedMeetingsRequest = cache(api.meetings.getAll);
+
 function AppContent() {
   const { user, loading } = useAuth();
 
   if (loading) return <LoadingFallback />;
-
   if (!user) return <LoginPage />;
 
-  const meetingsPromise = api.meetings.getAll();
+  const meetingsPromise = cachedMeetingsRequest();
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -46,8 +47,10 @@ function AppContent() {
   );
 }
 
+const cachedVerifyRequest = cache(api.auth.verifyToken);
+
 export default function App() {
-  const verifyAuthTokenPromise = api.auth.verifyToken();
+  const verifyAuthTokenPromise = cachedVerifyRequest();
   return (
     <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID ?? ""}>
       <Suspense fallback={<LoadingFallback />}>

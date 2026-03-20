@@ -17,7 +17,6 @@ import { api } from "../api";
 type MeetingsContextValue = {
   meetings: MeetingDTO[];
   createMeeting: (meeting: CreateMeetingDTO) => Promise<MeetingDTO>;
-  getMeetings: () => Promise<MeetingDTO[]>;
   deleteMeeting: (id: string) => Promise<void>;
   updateMeeting: (id: string, updates: UpdateMeetingDTO) => Promise<void>;
 };
@@ -84,7 +83,6 @@ export function MeetingsProvider({
   const value: MeetingsContextValue = {
     meetings,
     createMeeting,
-    getMeetings,
     deleteMeeting,
     updateMeeting,
   };
