@@ -12,12 +12,7 @@ const envSchema = z.object({
 const env = envSchema.parse(process.env);
 
 export const CONFIG = {
-  GOOGLE_CLIENT_ID: env.GOOGLE_CLIENT_ID,
-  GOOGLE_CLIENT_SECRET: env.GOOGLE_CLIENT_SECRET,
-  GOOGLE_REDIRECT_URI: env.GOOGLE_REDIRECT_URI,
-  ALLOWED_GOOGLE_DOMAIN: env.ALLOWED_GOOGLE_DOMAIN,
-  SESSION_SECRET: env.SESSION_SECRET,
-  FRONTEND_ORIGIN: env.FRONTEND_ORIGIN,
+  ...env,
   GOOGLE_AUTHORIZE: "https://accounts.google.com/o/oauth2/v2/auth",
   GOOGLE_TOKEN: "https://oauth2.googleapis.com/token",
 } as const;

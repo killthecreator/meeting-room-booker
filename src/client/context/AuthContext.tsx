@@ -7,6 +7,7 @@ import {
   type ReactNode,
 } from "react";
 import type { AuthUser } from "../../types/AuthUser.type";
+import axios from "axios";
 
 const SESSION_STORAGE_KEY = "auth_session";
 
@@ -45,23 +46,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const fetchUser = useCallback(async () => {
     const token = getStoredToken();
-    const res = await fetch("/api/auth/me", {
-      credentials: "include",
+    const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/auth/me`, {
+      withCredentials: true,
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     });
-    if (res.ok) {
-      const data = await res.json();
-      setUser(data);
+    if (res.data) {
+      setUser(res.data);
       setError(null);
       return;
     }
     setUser(null);
     setStoredToken(null);
-    if (res.status === 401) {
-      setError(null);
-    } else {
-      setError("Failed to load session");
-    }
+    if (res.status === 401) setError(null);
+    else setError("Failed to load session");
   }, []);
 
   useEffect(() => {
@@ -87,9 +84,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(async () => {
     const token = getStoredToken();
-    await fetch(`/api/auth/logout`, {
-      method: "POST",
-      credentials: "include",
+    await axios.post(`${import.meta.env}/api/auth/logout`, undefined, {
+      withCredentials: true,
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     });
     setStoredToken(null);

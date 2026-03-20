@@ -8,8 +8,11 @@ import { limiter } from "./middlewares/rateLimitter";
 import { errorHandler } from "./middlewares/errorHandler";
 import { errorLogger } from "./middlewares/errorLogger";
 import { authMiddleware } from "./middlewares/authMiddleware";
+import cors from "cors";
+import { CONFIG } from "./config";
 
 const app = express();
+app.use(cors({ credentials: true, origin: CONFIG.FRONTEND_ORIGIN }));
 app.set("trust proxy", 1);
 app.use(cookieParser());
 app.use(express.json());

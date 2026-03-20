@@ -11,12 +11,11 @@ import type {
   MeetingDTO,
   UpdateMeetingDTO,
 } from "../../types/Meeting.type";
-import axios from "axios";
-import { meetingSchema } from "../../schemas/meeting";
+import { type AxiosPromise } from "axios";
+import { api } from "../api";
 
 type MeetingsContextValue = {
   meetings: MeetingDTO[];
-  loading: boolean;
   createMeeting: (meeting: CreateMeetingDTO) => Promise<MeetingDTO>;
   getMeetings: () => Promise<MeetingDTO[]>;
   deleteMeeting: (id: string) => Promise<void>;
@@ -25,23 +24,36 @@ type MeetingsContextValue = {
 
 const MeetingsContext = createContext<MeetingsContextValue | null>(null);
 
-export function MeetingsProvider({ children }: { children: ReactNode }) {
-  const [meetings, setMeetings] = useState<MeetingDTO[]>([]);
-  const [loading, setLoading] = useState(true);
+type MeetingsProviderProps = {
+  meetingsPromise: AxiosPromise<MeetingDTO[]>;
+  children: ReactNode;
+};
+
+export function MeetingsProvider({
+  children,
+  meetingsPromise,
+}: MeetingsProviderProps) {
+  const initMeetings = use(meetingsPromise);
+  const [meetings, setMeetings] = useState<MeetingDTO[]>(initMeetings.data);
 
   const getMeetings = useCallback(async (): Promise<MeetingDTO[]> => {
-    const res = await axios.get("/api/meetings", { withCredentials: true });
+    const res = await api.meetings.getAll();
 
-    const parsed = meetingSchema.array().parse(res.data);
-    setMeetings(parsed);
-    return parsed;
+    setMeetings(res.data);
+    return res.data;
   }, []);
+
+  useEffect(() => {
+    const intervalId = setInterval(async () => {
+      await getMeetings();
+    }, 20_000);
+
+    return () => clearInterval(intervalId);
+  }, [getMeetings]);
 
   const createMeeting = useCallback(
     async (input: CreateMeetingDTO): Promise<MeetingDTO> => {
-      const res = await axios.post<MeetingDTO>("/api/meetings", input, {
-        withCredentials: true,
-      });
+      const res = await api.meetings.createMeeting(input);
 
       setMeetings((prev) => prev.concat(res.data));
       return res.data;
@@ -50,9 +62,7 @@ export function MeetingsProvider({ children }: { children: ReactNode }) {
   );
 
   const deleteMeeting = useCallback(async (id: string): Promise<void> => {
-    await axios.delete(`/api/meetings/${id}`, {
-      withCredentials: true,
-    });
+    await api.meetings.deleteById(id);
 
     setMeetings((prev) => prev.filter((m) => m.id !== id));
   }, []);
@@ -64,26 +74,15 @@ export function MeetingsProvider({ children }: { children: ReactNode }) {
       if (updates.end) body.end = updates.end;
       if (Object.keys(body).length === 0) return;
 
-      const res = await axios.patch<MeetingDTO>(`/api/meetings/${id}`, body, {
-        withCredentials: true,
-      });
+      const res = await api.meetings.updateById(id, body);
 
       setMeetings((prev) => prev.map((m) => (m.id === id ? res.data : m)));
     },
     [],
   );
 
-  useEffect(() => {
-    (async () => {
-      const meetings = await getMeetings();
-      setMeetings(meetings);
-      setLoading(false);
-    })();
-  }, [getMeetings]);
-
   const value: MeetingsContextValue = {
     meetings,
-    loading,
     createMeeting,
     getMeetings,
     deleteMeeting,

@@ -41,18 +41,18 @@ type ConfirmOptions = {
   title: string;
   style?: CSSProperties;
   step?: number;
-  start?: Date;
-  end?: Date;
-  date?: Date;
+  start: Date;
+  end: Date;
+  date: Date;
   /** Date picker range in the form (YYYY-MM-DD). */
-  minDate?: string;
-  maxDate?: string;
+  minDate: string;
+  maxDate: string;
   /** Returns true if a meeting already exists in the selected slot (time overlap). */
   checkOverlap?: (start: Date, end: Date) => boolean;
   /** Called when day/time changes in the form (to sync with ghost). */
-  onDraftChange?: (start: Date, end: Date, date: Date) => void;
+  onDraftChange: (start: Date, end: Date, date: Date) => void;
   /** Called when the meeting name changes in the form (to sync ghost label). */
-  onDraftNameChange?: (name: string) => void;
+  onDraftNameChange: (name: string) => void;
   /** Returns the ghost block rect for positioning the modal next to it. */
   getAnchorRect?: () => DOMRect | null;
 };
@@ -105,6 +105,7 @@ export const ConfirmMeetingCreationProvider = ({
     left: number;
     top: number;
   } | null>(null);
+
   useEffect(() => {
     optionsRef.current = options;
   }, [options]);
@@ -144,23 +145,20 @@ export const ConfirmMeetingCreationProvider = ({
   const openModal = useCallback((opts: ConfirmOptions) => {
     setOptions(opts);
     setOverlapError(null);
-    const baseDate = opts.date ?? opts.start ?? new Date();
-    let dateStr = formatDateForInput(baseDate);
-    if (opts.minDate && dateStr < opts.minDate) dateStr = opts.minDate;
-    if (opts.maxDate && dateStr > opts.maxDate) dateStr = opts.maxDate;
+
+    let dateStr = formatDateForInput(opts.date);
+    if (dateStr < opts.minDate) dateStr = opts.minDate;
+    if (dateStr > opts.maxDate) dateStr = opts.maxDate;
     if (isWeekend(parseDateInput(dateStr))) {
       const d = getNextWeekday(parseDateInput(dateStr));
       dateStr = formatDateForInput(d);
-      if (opts.minDate && dateStr < opts.minDate) dateStr = opts.minDate;
-      if (opts.maxDate && dateStr > opts.maxDate) dateStr = opts.maxDate;
+      if (dateStr < opts.minDate) dateStr = opts.minDate;
+      if (dateStr > opts.maxDate) dateStr = opts.maxDate;
     }
 
-    const startStr = opts.start
-      ? formatMinutesAsTime(minutesFromMidnight(opts.start))
-      : DEFAULT_MEETING_FORM_TIME_STRINGS.START;
-    const endStr = opts.end
-      ? formatMinutesAsTime(minutesFromMidnight(opts.end))
-      : DEFAULT_MEETING_FORM_TIME_STRINGS.END;
+    const startStr = formatMinutesAsTime(minutesFromMidnight(opts.start));
+    const endStr = formatMinutesAsTime(minutesFromMidnight(opts.end));
+
     setFormValues((prev) => ({
       ...prev,
       name: "New meeting",
@@ -267,21 +265,17 @@ export const ConfirmMeetingCreationProvider = ({
                   const prevD = getPreviousWeekday(parseDateInput(value));
                   const nextStr = formatDateForInput(nextD);
                   const prevStr = formatDateForInput(prevD);
-                  if (opts?.maxDate && nextStr > opts.maxDate) return prevStr;
-                  if (opts?.minDate && prevStr < opts.minDate) return nextStr;
+                  if (nextStr > opts!.maxDate) return prevStr;
+                  if (prevStr < opts!.minDate) return nextStr;
                   let out = nextStr;
-                  if (opts?.minDate && out < opts.minDate) out = opts.minDate;
-                  if (opts?.maxDate && out > opts.maxDate) out = opts.maxDate;
+                  if (out < opts!.minDate) out = opts!.minDate;
+                  if (out > opts!.maxDate) out = opts!.maxDate;
                   return out;
                 })()
               : value,
         };
-        if (name === "name") {
-          opts?.onDraftNameChange?.(value);
-        } else if (
-          opts?.onDraftChange &&
-          (name === "date" || name === "start" || name === "end")
-        ) {
+        if (name === "name") opts!.onDraftNameChange(value);
+        else if (name === "date" || name === "start" || name === "end") {
           const dateStr = name === "date" ? next.date : prev.date;
           const startStr = name === "start" ? value : prev.start;
           const endStr = name === "end" ? value : prev.end;
@@ -292,7 +286,7 @@ export const ConfirmMeetingCreationProvider = ({
           start.setHours(startH, startM, 0, 0);
           const end = new Date(d);
           end.setHours(endH, endM, 0, 0);
-          opts.onDraftChange(start, end, d);
+          opts!.onDraftChange(start, end, d);
         }
         return next;
       });
