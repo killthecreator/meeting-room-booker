@@ -4,25 +4,14 @@ import type {
   MeetingDTO,
   UpdateMeetingDTO,
 } from "../types/Meeting.type";
+import { getStoredToken, setStoredToken } from "./lib/storedAuthToken";
 
-const SESSION_STORAGE_KEY = "auth_session";
-
-function getStoredToken(): string | null {
-  try {
-    return localStorage.getItem(SESSION_STORAGE_KEY);
-  } catch {
-    return null;
-  }
-}
-
-function setStoredToken(token: string | null) {
-  try {
-    if (token) localStorage.setItem(SESSION_STORAGE_KEY, token);
-    else localStorage.removeItem(SESSION_STORAGE_KEY);
-  } catch {
-    // ignore
-  }
-}
+const getAuthReqConfig = () => {
+  const token = getStoredToken();
+  return {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  };
+};
 
 const apiWrapper = axios.create({
   baseURL: `${import.meta.env.VITE_API_URL}/api`,
@@ -47,17 +36,11 @@ export const api = {
 
   auth: {
     async getUser() {
-      const token = getStoredToken();
-      return apiWrapper.get("/auth/me", {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
+      return apiWrapper.get("/auth/me", getAuthReqConfig());
     },
 
     async logout() {
-      const token = getStoredToken();
-      await apiWrapper.post(`/auth/logout`, undefined, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
+      await apiWrapper.post(`/auth/logout`, undefined, getAuthReqConfig());
       setStoredToken(null);
     },
   },

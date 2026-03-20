@@ -7,9 +7,9 @@ import {
   type ReactNode,
 } from "react";
 import type { AuthUser } from "../../types/AuthUser.type";
-import axios from "axios";
 
-const SESSION_STORAGE_KEY = "auth_session";
+import { api } from "../api";
+import { setStoredToken } from "../lib/storedAuthToken";
 
 type AuthContextValue = {
   user: AuthUser | null;
@@ -21,35 +21,13 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-/** Use localStorage so session persists across reloads and tab closes */
-function getStoredToken(): string | null {
-  try {
-    return localStorage.getItem(SESSION_STORAGE_KEY);
-  } catch {
-    return null;
-  }
-}
-
-function setStoredToken(token: string | null) {
-  try {
-    if (token) localStorage.setItem(SESSION_STORAGE_KEY, token);
-    else localStorage.removeItem(SESSION_STORAGE_KEY);
-  } catch {
-    // ignore
-  }
-}
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const fetchUser = useCallback(async () => {
-    const token = getStoredToken();
-    const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/auth/me`, {
-      withCredentials: true,
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
-    });
+    const res = await api.auth.getUser();
     if (res.data) {
       setUser(res.data);
       setError(null);
@@ -83,12 +61,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const logout = useCallback(async () => {
-    const token = getStoredToken();
-    await axios.post(`${import.meta.env}/api/auth/logout`, undefined, {
-      withCredentials: true,
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
-    });
-    setStoredToken(null);
+    await api.auth.logout();
     setUser(null);
   }, []);
 
