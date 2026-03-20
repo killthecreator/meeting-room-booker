@@ -7,12 +7,14 @@ const envSchema = z.object({
   ALLOWED_GOOGLE_DOMAIN: z.string().optional(),
   SESSION_SECRET: z.string(),
   FRONTEND_ORIGIN: z.string().default("http://localhost:5173"),
+  NODE_ENV: z
+    .union([z.literal("dev"), z.literal("production")])
+    .default("dev"),
 });
 
 const env = envSchema.parse(process.env);
 
 export const CONFIG = {
   ...env,
-  GOOGLE_AUTHORIZE: "https://accounts.google.com/o/oauth2/v2/auth",
   GOOGLE_TOKEN: "https://oauth2.googleapis.com/token",
 } as const;

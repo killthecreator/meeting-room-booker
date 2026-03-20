@@ -4,7 +4,8 @@ import type {
   MeetingDTO,
   UpdateMeetingDTO,
 } from "../types/Meeting.type";
-import { getStoredToken, setStoredToken } from "./lib/storedAuthToken";
+import type { Credentials } from "google-auth-library";
+import { getStoredToken } from "./lib/storedAuthToken";
 
 const getAuthReqConfig = () => {
   const token = getStoredToken();
@@ -14,8 +15,9 @@ const getAuthReqConfig = () => {
 };
 
 const apiWrapper = axios.create({
-  baseURL: `${import.meta.env.VITE_API_URL}/api`,
+  baseURL: import.meta.env.VITE_API_URL,
   withCredentials: true,
+  ...getAuthReqConfig(),
 });
 
 export const api = {
@@ -35,13 +37,11 @@ export const api = {
   },
 
   auth: {
-    async getUser() {
-      return apiWrapper.get("/auth/me", getAuthReqConfig());
+    async google(body: { code: string }) {
+      return apiWrapper.post<Credentials>("/auth/google/callback", body);
     },
-
-    async logout() {
-      await apiWrapper.post(`/auth/logout`, undefined, getAuthReqConfig());
-      setStoredToken(null);
+    async refreshToken(body: { refreshToken: string }) {
+      return apiWrapper.post<Credentials>("/auth/google/refresh-token", body);
     },
   },
 };

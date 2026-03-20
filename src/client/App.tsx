@@ -6,6 +6,7 @@ import { MeetingsProvider } from "./context/MeetingsContext";
 import Header from "./components/Header";
 import { api } from "./api";
 import { Suspense } from "react";
+import { GoogleOAuthProvider } from "@react-oauth/google";
 
 const LoadingFallback = () => {
   return (
@@ -47,8 +48,12 @@ function AppContent() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
+    <GoogleOAuthProvider
+      clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID ?? ""}
+    >
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </GoogleOAuthProvider>
   );
 }

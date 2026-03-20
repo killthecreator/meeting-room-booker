@@ -1,14 +1,20 @@
 import { Router } from "express";
+import z from "zod";
 
 import { authController } from "./auth.controller";
+import { validateBodyMiddleware } from "../../middlewares/validateBody";
 
 const router = Router();
 
-/** GET /api/auth/google — redirect to Google Sign-in */
-router.get("/google", authController.redirectToGoogleSignIn);
-/** GET /api/auth/google/callback — exchange code, check domain, set session */
-router.get("/google/callback", authController.setSession);
-router.get("/me", authController.getMe);
-router.post("/logout", authController.logout);
+router.post(
+  "/google/callback",
+  validateBodyMiddleware(z.object({ code: z.string() })),
+  authController.setSession,
+);
+router.post(
+  "/google/refresh-token",
+  validateBodyMiddleware(z.object({ refreshToken: z.string() })),
+  authController.refreshToken,
+);
 
 export default router;

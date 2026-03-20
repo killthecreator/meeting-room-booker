@@ -2,13 +2,17 @@ import {
   createContext,
   use,
   useCallback,
-  useEffect,
+  useMemo,
   useState,
   type ReactNode,
 } from "react";
 import type { AuthUser } from "../../types/AuthUser.type";
+import { jwtDecode } from "jwt-decode";
 
 import { api } from "../api";
+
+import { googleLogout, useGoogleLogin } from "@react-oauth/google";
+import { googleAuthSchema } from "../../schemas/authUser";
 import { setStoredToken } from "../lib/storedAuthToken";
 
 type AuthContextValue = {
@@ -16,62 +20,51 @@ type AuthContextValue = {
   loading: boolean;
   error: string | null;
   login: () => void;
-  logout: () => Promise<void>;
+  logout: () => void;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchUser = useCallback(async () => {
-    const res = await api.auth.getUser();
-    if (res.data) {
-      setUser(res.data);
-      setError(null);
-      return;
-    }
-    setUser(null);
-    setStoredToken(null);
-    if (res.status === 401) setError(null);
-    else setError("Failed to load session");
-  }, []);
-
-  useEffect(() => {
-    const hash = window.location.hash;
-    if (hash.startsWith("#session=")) {
-      const token = decodeURIComponent(hash.slice("#session=".length));
+  const googleLogin = useGoogleLogin({
+    onSuccess: async ({ code }) => {
+      const res = await api.auth.google({ code });
+      if (!res.data.id_token) {
+        setError("Sign in failed: no id_token");
+        return;
+      }
+      const token = res.data.id_token;
+      const profile = jwtDecode(token);
       setStoredToken(token);
-      window.history.replaceState(
-        "",
-        document.title,
-        window.location.pathname + window.location.search,
-      );
-    }
-
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    fetchUser().finally(() => setLoading(false));
-  }, [fetchUser]);
+      setUser(googleAuthSchema.parse(profile));
+      setError(null);
+    },
+    onError: () => {
+      setError("Sign in failed. Please try again.");
+    },
+    flow: "auth-code",
+  });
 
   const login = useCallback(() => {
-    setError(null);
-    window.location.href = `/api/auth/google`;
-  }, []);
+    setLoading(true);
+    googleLogin();
+    setLoading(false);
+  }, [googleLogin]);
 
-  const logout = useCallback(async () => {
-    await api.auth.logout();
-    setUser(null);
-  }, []);
-
-  const value: AuthContextValue = {
-    user,
-    loading,
-    error,
-    login,
-    logout,
-  };
+  const value = useMemo<AuthContextValue>(
+    () => ({
+      user,
+      loading,
+      error,
+      login,
+      logout: googleLogout,
+    }),
+    [error, loading, login, user],
+  );
 
   return <AuthContext value={value}>{children}</AuthContext>;
 }

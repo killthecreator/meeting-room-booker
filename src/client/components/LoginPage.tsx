@@ -4,7 +4,7 @@ import CalendarIcon from "./Icons/CalendarIcon";
 import GoogleLogo from "./Icons/GoogleLogo";
 
 export function LoginPage() {
-  const { login, error } = useAuth();
+  const { login, error, loading } = useAuth();
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -55,9 +55,17 @@ export function LoginPage() {
         <button
           type="button"
           onClick={login}
-          className="border-secondary-200 text-secondary-800 hover:border-secondary-300 flex h-12 w-full cursor-pointer items-center justify-center gap-3 rounded-xl border bg-white text-base font-medium shadow-sm transition-all duration-200 hover:shadow-md active:scale-[0.98]"
+          disabled={loading}
+          className="border-secondary-200 text-secondary-800 hover:border-secondary-300 flex h-12 w-full cursor-pointer items-center justify-center gap-3 rounded-xl border bg-white text-base font-medium shadow-sm transition-all duration-200 hover:shadow-md active:scale-[0.98] disabled:cursor-wait disabled:opacity-80"
         >
-          <GoogleLogo className="size-5" />
+          {loading ? (
+            <span
+              className="border-secondary-300 border-t-secondary-700 size-5 shrink-0 animate-spin rounded-full border-2"
+              aria-hidden
+            />
+          ) : (
+            <GoogleLogo className="size-5" />
+          )}
           <span>Sign in with Google</span>
         </button>
       </div>
