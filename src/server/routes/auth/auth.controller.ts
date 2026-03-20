@@ -2,6 +2,7 @@ import type { RequestHandler } from "express";
 
 import { CONFIG } from "../../config";
 import { OAuth2Client, UserRefreshClient } from "google-auth-library";
+import { getAuthToken } from "./utils/getAuthToken";
 
 const oAuth2Client = new OAuth2Client(
   CONFIG.GOOGLE_CLIENT_ID,
@@ -10,10 +11,22 @@ const oAuth2Client = new OAuth2Client(
 );
 
 export const authController = {
-  async setSession(req, res) {
+  async generateSession(req, res) {
     const { tokens } = await oAuth2Client.getToken(req.body.code); // exchange code for tokens
 
-    res.status(200).json(tokens);
+    res.json(tokens);
+  },
+
+  async verifyToken(req, res) {
+    const authToken = getAuthToken(req);
+    if (!authToken) return res.status(200).send();
+
+    const ticket = await oAuth2Client.verifyIdToken({
+      idToken: authToken,
+      audience: CONFIG.GOOGLE_CLIENT_ID,
+    });
+
+    res.json(ticket.getPayload());
   },
 
   async refreshToken(req, res) {

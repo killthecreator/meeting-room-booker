@@ -47,13 +47,14 @@ function AppContent() {
 }
 
 export default function App() {
+  const verifyAuthTokenPromise = api.auth.verifyToken();
   return (
-    <GoogleOAuthProvider
-      clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID ?? ""}
-    >
-      <AuthProvider>
-        <AppContent />
-      </AuthProvider>
+    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID ?? ""}>
+      <Suspense fallback={<LoadingFallback />}>
+        <AuthProvider verifyAuthTokenPromise={verifyAuthTokenPromise}>
+          <AppContent />
+        </AuthProvider>
+      </Suspense>
     </GoogleOAuthProvider>
   );
 }

@@ -9,8 +9,9 @@ const router = Router();
 router.post(
   "/google/callback",
   validateBodyMiddleware(z.object({ code: z.string() })),
-  authController.setSession,
+  authController.generateSession,
 );
+router.get("/google/verify-token", authController.verifyToken);
 router.post(
   "/google/refresh-token",
   validateBodyMiddleware(z.object({ refreshToken: z.string() })),

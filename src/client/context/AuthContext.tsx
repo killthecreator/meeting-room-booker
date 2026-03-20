@@ -14,9 +14,10 @@ import { api } from "../api";
 import { googleLogout, useGoogleLogin } from "@react-oauth/google";
 import { googleAuthSchema } from "../../schemas/authUser";
 import { setStoredToken } from "../lib/storedAuthToken";
+import type { AxiosPromise } from "axios";
 
 type AuthContextValue = {
-  user: AuthUser | null;
+  user: AuthUser | undefined;
   loading: boolean;
   error: string | null;
   login: () => void;
@@ -25,8 +26,18 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<AuthUser | null>(null);
+type AuthProviderProps = {
+  verifyAuthTokenPromise: AxiosPromise<AuthUser | undefined>;
+  children: ReactNode;
+};
+
+export function AuthProvider({
+  children,
+  verifyAuthTokenPromise,
+}: AuthProviderProps) {
+  const initUserRes = use(verifyAuthTokenPromise);
+
+  const [user, setUser] = useState<AuthUser | undefined>(initUserRes.data);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -49,11 +60,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     flow: "auth-code",
   });
 
-  const login = useCallback(() => {
+  const login = useCallback(async () => {
     setLoading(true);
     googleLogin();
     setLoading(false);
   }, [googleLogin]);
+
+  const logout = useCallback(() => {
+    setUser(undefined);
+
+    googleLogout();
+    setStoredToken(null);
+  }, []);
 
   const value = useMemo<AuthContextValue>(
     () => ({
@@ -61,9 +79,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       loading,
       error,
       login,
-      logout: googleLogout,
+      logout,
     }),
-    [error, loading, login, user],
+    [error, loading, login, logout, user],
   );
 
   return <AuthContext value={value}>{children}</AuthContext>;

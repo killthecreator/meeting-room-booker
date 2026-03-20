@@ -6,6 +6,7 @@ import type {
 } from "../types/Meeting.type";
 import type { Credentials } from "google-auth-library";
 import { getStoredToken } from "./lib/storedAuthToken";
+import type { AuthUser } from "../types/AuthUser.type";
 
 const getAuthReqConfig = () => {
   const token = getStoredToken();
@@ -39,6 +40,9 @@ export const api = {
   auth: {
     async google(body: { code: string }) {
       return apiWrapper.post<Credentials>("/auth/google/callback", body);
+    },
+    async verifyToken() {
+      return apiWrapper.get<AuthUser | undefined>("/auth/google/verify-token");
     },
     async refreshToken(body: { refreshToken: string }) {
       return apiWrapper.post<Credentials>("/auth/google/refresh-token", body);
