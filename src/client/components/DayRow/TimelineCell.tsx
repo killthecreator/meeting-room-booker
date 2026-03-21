@@ -53,6 +53,7 @@ export default function TimelineCell({
   const { updateMeeting, meetings } = useMeetings();
   const timelineCellRef = useRef<HTMLTableCellElement>(null);
 
+  // This is needed to prevent opening create meeting popup after resize
   const ignoreNextClickRef = useRef(false);
 
   const handleDragOver = useCallback((e: DragEvent<HTMLTableCellElement>) => {

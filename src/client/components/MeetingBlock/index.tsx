@@ -65,6 +65,7 @@ export function MeetingBlock({
       });
     }
   }, [isResizing, localBounds, meeting, updateMeeting]);
+  //
 
   const handleResize = useCallback(
     (newStartMin: number | null, newEndMin: number | null) => {
