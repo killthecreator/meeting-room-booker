@@ -8,7 +8,6 @@ import {
   useMemo,
   useEffect,
   type MouseEvent,
-  type CSSProperties,
   type SubmitEvent,
   type ChangeEvent,
   useLayoutEffect,
@@ -38,8 +37,6 @@ type FormValues = {
 };
 
 type ConfirmOptions = {
-  title: string;
-  style?: CSSProperties;
   step?: number;
   start: Date;
   end: Date;
@@ -330,7 +327,6 @@ export const ConfirmMeetingCreationProvider = ({
               modalPosition
                 ? { left: modalPosition.left, top: modalPosition.top }
                 : {
-                    ...options.style,
                     left: "50%",
                     top: "50%",
                     transform: "translate(-50%, -50%)",
@@ -340,7 +336,7 @@ export const ConfirmMeetingCreationProvider = ({
             <div className="flex flex-col gap-3">
               <div className="title-block">
                 <h2 className="text-secondary-900 text-base font-semibold tracking-tight">
-                  {options.title}
+                  Create Meeting
                 </h2>
               </div>
 

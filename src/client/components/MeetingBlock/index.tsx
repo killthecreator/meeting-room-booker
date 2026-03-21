@@ -8,8 +8,6 @@ import {
 import type { MeetingDTO } from "../../../types/Meeting.type";
 import {
   minutesFromMidnight,
-  parseDateInput,
-  isWeekend,
   dayKey,
   roundToClosestStep,
   setMinutesFromMidnight,
@@ -17,7 +15,6 @@ import {
 import {
   getMeetingBlockLayoutPercent,
   snapPointerMinutesOnTimeline,
-  clampNewSlotStartMinutes,
 } from "../../lib/timeline";
 import { MeetingTooltip } from "./MeetingTooltip";
 import { cn } from "../../lib/cn";
@@ -27,38 +24,47 @@ import { useAuth } from "../../context/AuthContext";
 import type { DragState } from "../../../types/DragState.type";
 import { getEndBounds, getStartBounds } from "../../lib/meeting-bounds";
 
-const DRAG_THRESHOLD_PX = 8;
-
 type MeetingBlockProps = {
   meeting: MeetingDTO;
-  onMeetingDrop: (date: Date, startMinutes: number, meetingId: string) => void;
   timelineCellRef: RefObject<HTMLTableCellElement | null>;
+  ignoreNextClickRef: RefObject<boolean>;
 };
 
 export function MeetingBlock({
   meeting,
-  onMeetingDrop,
 
   timelineCellRef,
+  ignoreNextClickRef,
 }: MeetingBlockProps) {
   const { user } = useAuth();
   const isUsersMeeting = user?.id === meeting.owner.id;
   const blockRef = useRef<HTMLDivElement>(null);
+
   const [isDragging, setIsDragging] = useState(false);
-  const touchDragRef = useRef<{
-    touchId: number;
-    offsetX: number;
-    offsetY: number;
-    startX: number;
-    startY: number;
-  } | null>(null);
 
-  ///////////////////////////////
-
-  const { meetings, updateMeeting } = useMeetings();
+  const { meetings, updateMeeting, deleteMeeting } = useMeetings();
 
   const [drag, setDrag] = useState<DragState | null>(null);
   const isResizing = !!drag;
+
+  const showTooltip = !isDragging && !isResizing;
+
+  // This logic is added to avoid update requests on resizing
+  const [localBounds, setLocalBounds] = useState({
+    start: meeting.start,
+    end: meeting.end,
+  });
+  useEffect(() => {
+    if (
+      !isResizing &&
+      (localBounds.start !== meeting.start || localBounds.end !== meeting.end)
+    ) {
+      void updateMeeting(meeting.id, {
+        start: localBounds.start,
+        end: localBounds.end,
+      });
+    }
+  }, [isResizing, localBounds, meeting, updateMeeting]);
 
   const handleResize = useCallback(
     (newStartMin: number | null, newEndMin: number | null) => {
@@ -88,18 +94,12 @@ export function MeetingBlock({
         end = setMinutesFromMidnight(endDate, clamped);
       }
 
-      if (
-        start.getTime() === startDate.getTime() &&
-        end.getTime() === endDate.getTime()
-      )
-        return;
-
-      updateMeeting(meetingId, {
+      setLocalBounds({
         start: start.toISOString(),
         end: end.toISOString(),
       });
     },
-    [meetings, updateMeeting, meeting],
+    [meetings, meeting],
   );
 
   useEffect(() => {
@@ -108,13 +108,9 @@ export function MeetingBlock({
     if (!cell) return;
     if (drag.edge === "move") return;
 
-    const getClientX = (e: globalThis.MouseEvent | TouchEvent) =>
-      "touches" in e ? (e.touches[0]?.clientX ?? 0) : e.clientX;
-
-    const handleMove = (e: globalThis.MouseEvent | TouchEvent) => {
-      if ("touches" in e) e.preventDefault();
+    const handleMove = (e: globalThis.MouseEvent) => {
       const rect = cell.getBoundingClientRect();
-      const x = getClientX(e) - rect.left;
+      const x = e.clientX - rect.left;
       const minutes = snapPointerMinutesOnTimeline(x, rect.width);
 
       switch (drag.edge) {
@@ -129,12 +125,8 @@ export function MeetingBlock({
       }
     };
     const handleUp = () => {
-      //ignoreNextClickRef.current = true;
+      ignoreNextClickRef.current = true;
       setDrag(null);
-    };
-
-    const handleTouchEnd = (e: TouchEvent) => {
-      if (e.changedTouches[0]) handleUp();
     };
 
     const controller = new AbortController();
@@ -144,16 +136,10 @@ export function MeetingBlock({
     window.addEventListener("mousemove", handleMove, { signal });
     window.addEventListener("mouseup", handleUp, { signal });
 
-    //for mobile
-    window.addEventListener("touchmove", handleMove, {
-      passive: false,
-      signal,
-    });
-    window.addEventListener("touchend", handleTouchEnd, { signal });
     return () => {
       controller.abort();
     };
-  }, [drag, handleResize, timelineCellRef]);
+  }, [drag, handleResize, timelineCellRef, ignoreNextClickRef]);
 
   const handleResizeStart = useCallback(
     (edge: "left" | "right") => {
@@ -167,13 +153,8 @@ export function MeetingBlock({
     [meeting],
   );
 
-  ///////////////////////////////
-  const showTooltip = !isDragging && !isResizing;
-
-  const { deleteMeeting } = useMeetings();
-
-  const startMin = minutesFromMidnight(new Date(meeting.start));
-  const endMin = minutesFromMidnight(new Date(meeting.end));
+  const startMin = minutesFromMidnight(new Date(localBounds.start));
+  const endMin = minutesFromMidnight(new Date(localBounds.end));
   const { leftPct: left, widthPct: width } = getMeetingBlockLayoutPercent(
     startMin,
     endMin,
@@ -198,88 +179,6 @@ export function MeetingBlock({
     setIsDragging(false);
   };
 
-  const handleTouchStart = useCallback(
-    (e: React.TouchEvent) => {
-      if (!isUsersMeeting) return;
-      const touch = e.touches[0];
-      if (!touch) return;
-      const rect = blockRef.current?.getBoundingClientRect();
-      if (!rect) return;
-      const data = {
-        touchId: touch.identifier,
-        offsetX: touch.clientX - rect.left,
-        offsetY: touch.clientY - rect.top,
-        startX: touch.clientX,
-        startY: touch.clientY,
-        didDrag: false,
-      };
-      touchDragRef.current = data;
-
-      const handleMove = (moveE: TouchEvent) => {
-        const t = Array.from(moveE.touches).find(
-          (x) => x.identifier === data.touchId,
-        );
-        if (!t) return;
-        const dx = Math.abs(t.clientX - data.startX);
-        const dy = Math.abs(t.clientY - data.startY);
-        if (dx > DRAG_THRESHOLD_PX || dy > DRAG_THRESHOLD_PX) {
-          data.didDrag = true;
-          moveE.preventDefault();
-          setIsDragging(true);
-        }
-      };
-
-      const handleEnd = (endE: TouchEvent) => {
-        const t = endE.changedTouches[0];
-        if (!t || t.identifier !== data.touchId) {
-          touchDragRef.current = null;
-          setIsDragging(false);
-          cleanup();
-          return;
-        }
-        touchDragRef.current = null;
-        setIsDragging(false);
-        cleanup();
-
-        if (!data.didDrag) return;
-
-        const el = document.elementFromPoint(t.clientX, t.clientY);
-        if (!el) return;
-
-        const tr = el.closest("tr[data-daykey]");
-        if (!tr || !(tr instanceof HTMLElement)) return;
-
-        const dayKeyVal = tr.getAttribute("data-daykey");
-        if (!dayKeyVal) return;
-
-        const targetDate = parseDateInput(dayKeyVal);
-        if (isWeekend(targetDate)) return;
-
-        const timelineCell = tr.querySelector("td:last-child");
-        if (!timelineCell) return;
-
-        const cellRect = timelineCell.getBoundingClientRect();
-        const blockLeftScreen = t.clientX - data.offsetX;
-        const dropX = blockLeftScreen - cellRect.left;
-        const snapped = snapPointerMinutesOnTimeline(dropX, cellRect.width);
-        const clamped = clampNewSlotStartMinutes(snapped);
-
-        onMeetingDrop(targetDate, clamped, meeting.id);
-      };
-
-      const cleanup = () => {
-        document.removeEventListener("touchmove", handleMove);
-        document.removeEventListener("touchend", handleEnd);
-        document.removeEventListener("touchcancel", handleEnd);
-      };
-
-      document.addEventListener("touchmove", handleMove, { passive: false });
-      document.addEventListener("touchend", handleEnd);
-      document.addEventListener("touchcancel", handleEnd);
-    },
-    [isUsersMeeting, meeting.id, onMeetingDrop],
-  );
-
   return (
     <div
       ref={blockRef}
@@ -293,14 +192,12 @@ export function MeetingBlock({
         left: `${left}%`,
         width: `${width}%`,
         anchorName: `--tooltip-${meeting.id}`,
-        ...(isUsersMeeting && { touchAction: "none" as const }),
       }}
       onClick={(e) => e.stopPropagation()}
       {...(isUsersMeeting && {
         draggable: true,
         onDragStart: handleDragStart,
         onDragEnd: handleDragEnd,
-        onTouchStart: handleTouchStart,
       })}
     >
       <MeetingTooltip meeting={meeting} open={showTooltip} />

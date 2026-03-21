@@ -62,7 +62,6 @@ export function MeetingCalendar() {
       setDraftMeeting({ date, start, end, name: "New meeting" });
 
       const confirmRes = await confirmMeetingCreation({
-        title: "Create Meeting",
         start,
         end,
         date,

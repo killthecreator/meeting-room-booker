@@ -44,7 +44,6 @@ export default function TimelineCell({
   weekend,
   today,
   draftMeeting,
-
   date,
   ghostAnchorRef,
   dayMeetings,
@@ -54,7 +53,7 @@ export default function TimelineCell({
   const { updateMeeting, meetings } = useMeetings();
   const timelineCellRef = useRef<HTMLTableCellElement>(null);
 
-  //const ignoreNextClickRef = useRef(false);
+  const ignoreNextClickRef = useRef(false);
 
   const handleDragOver = useCallback((e: DragEvent<HTMLTableCellElement>) => {
     e.preventDefault();
@@ -93,8 +92,6 @@ export default function TimelineCell({
   const dropProcessedRef = useRef(false);
   const handleDrop = useCallback(
     (e: DragEvent<HTMLTableCellElement>) => {
-      e.preventDefault();
-      e.stopPropagation();
       if (dropProcessedRef.current) return;
       const meetingId = e.dataTransfer.getData("meetingId");
       if (!meetingId) return;
@@ -117,10 +114,10 @@ export default function TimelineCell({
   );
 
   const handleTimelineClick = (e: MouseEvent<HTMLTableCellElement>) => {
-    // if (ignoreNextClickRef.current) {
-    //   ignoreNextClickRef.current = false;
-    //   return;
-    // }
+    if (ignoreNextClickRef.current) {
+      ignoreNextClickRef.current = false;
+      return;
+    }
     const cell = timelineCellRef.current;
     if (!cell) return;
     const rect = cell.getBoundingClientRect();
@@ -136,11 +133,10 @@ export default function TimelineCell({
       ref={timelineCellRef}
       className={cn(
         "relative min-w-0 flex-1 p-0 transition-colors duration-200",
-        weekend
-          ? "bg-secondary-100/40"
-          : today
-            ? "bg-primary-50/25"
-            : "group-hover/row:bg-primary-50/30 bg-white/60",
+        today
+          ? "bg-primary-50/25"
+          : "group-hover/row:bg-primary-50/30 bg-white/60",
+        weekend && "bg-secondary-100/40",
       )}
       {...(!weekend && {
         onClick: handleTimelineClick,
@@ -152,10 +148,12 @@ export default function TimelineCell({
       {today && <CurrentTimeIndicator />}
       {dayMeetings.map((m) => (
         <MeetingBlock
-          key={m.id}
+          // Cannot just use ID. otherwise it is not possible to dnd within the same day
+          // Cuz react treats it as if it didnt change
+          key={`${m.start}_${m.id}_${m.end}`}
           meeting={m}
           timelineCellRef={timelineCellRef}
-          onMeetingDrop={handleMeetingDrop}
+          ignoreNextClickRef={ignoreNextClickRef}
         />
       ))}
       {draftMeeting && dayKey(draftMeeting.date) === dayKey(date) && (
