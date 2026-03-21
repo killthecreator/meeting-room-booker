@@ -5,20 +5,11 @@ import type {
   UpdateMeetingDTO,
 } from "../types/Meeting.type";
 import type { Credentials } from "google-auth-library";
-import { getStoredToken } from "./lib/storedAuthToken";
 import type { AuthUser } from "../types/AuthUser.type";
-
-const getAuthReqConfig = () => {
-  const token = getStoredToken();
-  return {
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
-  };
-};
 
 const apiWrapper = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
   withCredentials: true,
-  ...getAuthReqConfig(),
 });
 
 export const api = {
