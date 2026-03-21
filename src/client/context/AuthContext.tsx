@@ -3,6 +3,7 @@ import {
   use,
   useCallback,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -43,6 +44,7 @@ export function AuthProvider({
 
   const googleLogin = useGoogleLogin({
     onSuccess: async ({ code }) => {
+      setLoading(false);
       const res = await api.auth.google({ code });
       if (!res.data.id_token) {
         setError("Sign in failed: no id_token");
@@ -55,6 +57,7 @@ export function AuthProvider({
       setError(null);
     },
     onError: () => {
+      setLoading(false);
       setError("Sign in failed. Please try again.");
     },
     flow: "auth-code",
@@ -63,7 +66,6 @@ export function AuthProvider({
   const login = useCallback(async () => {
     setLoading(true);
     googleLogin();
-    setLoading(false);
   }, [googleLogin]);
 
   const logout = useCallback(() => {

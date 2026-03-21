@@ -22,9 +22,8 @@ const LoadingFallback = () => {
 };
 
 function AppContent() {
-  const { user, loading } = useAuth();
+  const { user } = useAuth();
 
-  if (loading) return <LoadingFallback />;
   if (!user) return <LoginPage />;
 
   return (
