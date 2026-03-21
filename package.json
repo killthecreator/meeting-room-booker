@@ -1,32 +1,20 @@
 {
-  "name": "haptiq-meeting-calendar",
+  "name": "meeting-calendar",
   "private": true,
-  "version": "0.0.1",
+  "version": "1.0.0",
   "type": "module",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
   "scripts": {
-    "dev:client": "vite",
-    "dev:server": "tsx --watch --env-file=.env src/server/index.ts",
-    "dev": "npm run dev:client && npm run dev:server",
-    "build": "tsc -b && vite build",
-    "ngrok": "ngrok http 5173",
+    "dev:client": "npm run dev --workspace=@meeting-calendar/client",
+    "dev:server": "npm run dev --workspace=@meeting-calendar/server",
+    "dev": "concurrently -n client,server -c blue,magenta \"npm run dev:client\" \"npm run dev:server\"",
+    "build:client": "npm run build --workspace=@meeting-calendar/client",
+    "build:server": "npm run build --workspace=@meeting-calendar/server",
     "lint": "eslint .",
     "prettier": "prettier --write ."
-  },
-  "dependencies": {
-    "@react-oauth/google": "^0.13.4",
-    "axios": "^1.13.6",
-    "clsx": "^2.1.1",
-    "cookie-parser": "^1.4.7",
-    "cors": "^2.8.6",
-    "express": "^5.1.0",
-    "express-rate-limit": "^8.3.1",
-    "google-auth-library": "^10.6.2",
-    "morgan": "^1.10.1",
-    "node-cron": "^4.2.1",
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0",
-    "tailwind-merge": "^3.5.0",
-    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
@@ -39,6 +27,7 @@
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.0",
+    "concurrently": "^9.2.1",
     "eslint": "^9.39.1",
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.4.24",
