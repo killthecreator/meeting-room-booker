@@ -3,6 +3,7 @@ import type { RequestHandler } from "express";
 import { CONFIG } from "../../config";
 import { OAuth2Client, UserRefreshClient } from "google-auth-library";
 import { getAuthToken } from "./utils/getAuthToken";
+import { googleAuthSchema } from "../../../schemas/authUser";
 
 const oAuth2Client = new OAuth2Client(
   CONFIG.GOOGLE_CLIENT_ID,
@@ -26,7 +27,7 @@ export const authController = {
       audience: CONFIG.GOOGLE_CLIENT_ID,
     });
 
-    res.json(ticket.getPayload());
+    res.json(googleAuthSchema.parse(ticket.getPayload()));
   },
 
   async refreshToken(req, res) {

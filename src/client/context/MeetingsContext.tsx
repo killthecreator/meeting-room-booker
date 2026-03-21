@@ -11,7 +11,7 @@ import type {
   MeetingDTO,
   UpdateMeetingDTO,
 } from "../../types/Meeting.type";
-import { type AxiosPromise } from "axios";
+
 import { api } from "../api";
 
 type MeetingsContextValue = {
@@ -24,16 +24,11 @@ type MeetingsContextValue = {
 const MeetingsContext = createContext<MeetingsContextValue | null>(null);
 
 type MeetingsProviderProps = {
-  meetingsPromise: AxiosPromise<MeetingDTO[]>;
   children: ReactNode;
 };
 
-export function MeetingsProvider({
-  children,
-  meetingsPromise,
-}: MeetingsProviderProps) {
-  const initMeetings = use(meetingsPromise);
-  const [meetings, setMeetings] = useState<MeetingDTO[]>(initMeetings.data);
+export function MeetingsProvider({ children }: MeetingsProviderProps) {
+  const [meetings, setMeetings] = useState<MeetingDTO[]>([]);
 
   const getMeetings = useCallback(async (): Promise<MeetingDTO[]> => {
     const res = await api.meetings.getAll();
@@ -41,6 +36,10 @@ export function MeetingsProvider({
     setMeetings(res.data);
     return res.data;
   }, []);
+
+  useEffect(() => {
+    (async () => getMeetings())();
+  }, [getMeetings]);
 
   useEffect(() => {
     const intervalId = setInterval(async () => {
