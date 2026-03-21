@@ -6,9 +6,13 @@ import tseslint from "typescript-eslint";
 import { defineConfig, globalIgnores } from "eslint/config";
 
 export default defineConfig([
-  globalIgnores(["dist"]),
+  globalIgnores([
+    "dist",
+    "**/node_modules",
+    "package-lock.json",
+  ]),
   {
-    files: ["**/*.{ts,tsx}"],
+    files: ["apps/client/**/*.{ts,tsx}"],
     extends: [
       js.configs.recommended,
       tseslint.configs.recommended,
@@ -23,6 +27,14 @@ export default defineConfig([
       "react-compiler/react-compiler": "off",
       "react-hooks/preserve-manual-memoization": "off",
       "react-refresh/only-export-components": "off",
+    },
+  },
+  {
+    files: ["apps/server/**/*.ts", "packages/shared/**/*.ts"],
+    extends: [js.configs.recommended, tseslint.configs.recommended],
+    languageOptions: {
+      ecmaVersion: 2020,
+      globals: globals.node,
     },
   },
 ]);
