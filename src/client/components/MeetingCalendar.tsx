@@ -34,7 +34,6 @@ export function MeetingCalendar() {
 
   const [draftMeeting, setDraftMeeting] = useState<DraftMeeting | null>(null);
   const ghostAnchorRef = useRef<HTMLDivElement>(null);
-  const touchDragEndRef = useRef(false);
 
   const meetingsByDay = meetings.reduce<Record<string, MeetingDTO[]>>(
     (acc, m) => {
@@ -53,10 +52,6 @@ export function MeetingCalendar() {
 
   const handleSlotClick = useCallback(
     async (date: Date, startMinutes: number) => {
-      if (touchDragEndRef.current) {
-        touchDragEndRef.current = false;
-        return;
-      }
       const snappedStart = roundToClosestStep(startMinutes);
       const defaultEnd = roundToClosestStep(
         startMinutes + DEFAULT_MEETING_DURATION_MIN,
@@ -119,10 +114,6 @@ export function MeetingCalendar() {
     ],
   );
 
-  const handleTouchDragEnd = useCallback(() => {
-    touchDragEndRef.current = true;
-  }, []);
-
   const handleDraftDrop = useCallback(
     (date: Date, startMinutes: number) => {
       if (!draftMeeting) return;
@@ -167,7 +158,6 @@ export function MeetingCalendar() {
               }
               onSlotClick={handleSlotClick}
               onDraftDrop={handleDraftDrop}
-              onTouchDragEnd={handleTouchDragEnd}
             />
           ))}
         </tbody>

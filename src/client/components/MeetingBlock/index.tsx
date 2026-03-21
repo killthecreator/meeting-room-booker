@@ -1,6 +1,19 @@
-import { useRef, useState, useCallback } from "react";
+import {
+  useRef,
+  useState,
+  useCallback,
+  type RefObject,
+  useEffect,
+} from "react";
 import type { MeetingDTO } from "../../../types/Meeting.type";
-import { minutesFromMidnight, parseDateInput, isWeekend } from "../../lib/date-utils";
+import {
+  minutesFromMidnight,
+  parseDateInput,
+  isWeekend,
+  dayKey,
+  roundToClosestStep,
+  setMinutesFromMidnight,
+} from "../../lib/date-utils";
 import {
   getMeetingBlockLayoutPercent,
   snapPointerMinutesOnTimeline,
@@ -11,23 +24,22 @@ import { cn } from "../../lib/cn";
 import { Resizer } from "./Resizer";
 import { useMeetings } from "../../context/MeetingsContext";
 import { useAuth } from "../../context/AuthContext";
+import type { DragState } from "../../../types/DragState.type";
+import { getEndBounds, getStartBounds } from "../../lib/meeting-bounds";
 
 const DRAG_THRESHOLD_PX = 8;
 
 type MeetingBlockProps = {
   meeting: MeetingDTO;
-  onResizeStart: (edge: "left" | "right") => void;
   onMeetingDrop: (date: Date, startMinutes: number, meetingId: string) => void;
-  onTouchDragEnd?: () => void;
-  isResizing?: boolean;
+  timelineCellRef: RefObject<HTMLTableCellElement | null>;
 };
 
 export function MeetingBlock({
   meeting,
-  onResizeStart,
   onMeetingDrop,
-  onTouchDragEnd,
-  isResizing = false,
+
+  timelineCellRef,
 }: MeetingBlockProps) {
   const { user } = useAuth();
   const isUsersMeeting = user?.id === meeting.owner.id;
@@ -41,6 +53,121 @@ export function MeetingBlock({
     startY: number;
   } | null>(null);
 
+  ///////////////////////////////
+
+  const { meetings, updateMeeting } = useMeetings();
+
+  const [drag, setDrag] = useState<DragState | null>(null);
+  const isResizing = !!drag;
+
+  const handleResize = useCallback(
+    (newStartMin: number | null, newEndMin: number | null) => {
+      const meetingId = meeting.id;
+      const startDate = new Date(meeting.start);
+      const endDate = new Date(meeting.end);
+      const k = dayKey(startDate);
+      const others = meetings.filter(
+        (m) => dayKey(new Date(m.start)) === k && m.id !== meetingId,
+      );
+      const startMin = minutesFromMidnight(startDate);
+      const endMin = minutesFromMidnight(endDate);
+
+      let start = startDate;
+      let end = endDate;
+
+      if (newStartMin !== null) {
+        const [minStart, maxStart] = getStartBounds(endMin, others);
+        const snapped = roundToClosestStep(newStartMin);
+        const clamped = Math.max(minStart, Math.min(maxStart, snapped));
+        start = setMinutesFromMidnight(startDate, clamped);
+      }
+      if (newEndMin !== null) {
+        const [minEnd, maxEnd] = getEndBounds(startMin, others);
+        const snapped = roundToClosestStep(newEndMin);
+        const clamped = Math.max(minEnd, Math.min(maxEnd, snapped));
+        end = setMinutesFromMidnight(endDate, clamped);
+      }
+
+      if (
+        start.getTime() === startDate.getTime() &&
+        end.getTime() === endDate.getTime()
+      )
+        return;
+
+      updateMeeting(meetingId, {
+        start: start.toISOString(),
+        end: end.toISOString(),
+      });
+    },
+    [meetings, updateMeeting, meeting],
+  );
+
+  useEffect(() => {
+    if (!drag) return;
+    const cell = timelineCellRef.current;
+    if (!cell) return;
+    if (drag.edge === "move") return;
+
+    const getClientX = (e: globalThis.MouseEvent | TouchEvent) =>
+      "touches" in e ? (e.touches[0]?.clientX ?? 0) : e.clientX;
+
+    const handleMove = (e: globalThis.MouseEvent | TouchEvent) => {
+      if ("touches" in e) e.preventDefault();
+      const rect = cell.getBoundingClientRect();
+      const x = getClientX(e) - rect.left;
+      const minutes = snapPointerMinutesOnTimeline(x, rect.width);
+
+      switch (drag.edge) {
+        case "left": {
+          handleResize(minutes, null);
+          break;
+        }
+        case "right": {
+          handleResize(null, minutes);
+          break;
+        }
+      }
+    };
+    const handleUp = () => {
+      //ignoreNextClickRef.current = true;
+      setDrag(null);
+    };
+
+    const handleTouchEnd = (e: TouchEvent) => {
+      if (e.changedTouches[0]) handleUp();
+    };
+
+    const controller = new AbortController();
+    const { signal } = controller;
+
+    //for desktop
+    window.addEventListener("mousemove", handleMove, { signal });
+    window.addEventListener("mouseup", handleUp, { signal });
+
+    //for mobile
+    window.addEventListener("touchmove", handleMove, {
+      passive: false,
+      signal,
+    });
+    window.addEventListener("touchend", handleTouchEnd, { signal });
+    return () => {
+      controller.abort();
+    };
+  }, [drag, handleResize, timelineCellRef]);
+
+  const handleResizeStart = useCallback(
+    (edge: "left" | "right") => {
+      setDrag({
+        meetingId: meeting.id,
+        edge,
+        startMin: minutesFromMidnight(new Date(meeting.start)),
+        endMin: minutesFromMidnight(new Date(meeting.end)),
+      });
+    },
+    [meeting],
+  );
+
+  ///////////////////////////////
   const showTooltip = !isDragging && !isResizing;
 
   const { deleteMeeting } = useMeetings();
@@ -138,7 +265,6 @@ export function MeetingBlock({
         const clamped = clampNewSlotStartMinutes(snapped);
 
         onMeetingDrop(targetDate, clamped, meeting.id);
-        onTouchDragEnd?.();
       };
 
       const cleanup = () => {
@@ -151,7 +277,7 @@ export function MeetingBlock({
       document.addEventListener("touchend", handleEnd);
       document.addEventListener("touchcancel", handleEnd);
     },
-    [isUsersMeeting, meeting.id, onMeetingDrop, onTouchDragEnd],
+    [isUsersMeeting, meeting.id, onMeetingDrop],
   );
 
   return (
@@ -191,8 +317,8 @@ export function MeetingBlock({
           >
             ×
           </button>
-          <Resizer edge="left" onResizeStart={onResizeStart} />
-          <Resizer edge="right" onResizeStart={onResizeStart} />
+          <Resizer edge="left" onResizeStart={handleResizeStart} />
+          <Resizer edge="right" onResizeStart={handleResizeStart} />
         </>
       )}
     </div>

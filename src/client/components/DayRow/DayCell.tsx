@@ -9,7 +9,7 @@ import { cn } from "../../lib/cn";
 type DayTableItemProps = {
   date: Date;
 };
-export function DayTableItem({ date }: DayTableItemProps) {
+export default function DayCell({ date }: DayTableItemProps) {
   const weekend = isWeekend(date);
   const today = isToday(date);
   return (

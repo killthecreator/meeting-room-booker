@@ -9,18 +9,16 @@ import { errorHandler } from "./middlewares/errorHandler";
 import { errorLogger } from "./middlewares/errorLogger";
 import { authMiddleware } from "./middlewares/authMiddleware";
 import cors from "cors";
-import { CONFIG } from "./config";
+import { ENV } from "./env";
 
 const app = express();
-app.use(cors({ credentials: true, origin: CONFIG.FRONTEND_ORIGIN }));
+app.use(cors({ credentials: true, origin: ENV.FRONTEND_ORIGIN }));
 app.set("trust proxy", 1);
 app.use(cookieParser());
 app.use(express.json());
-app.use(limiter);
+//app.use(limiter);
 app.use(express.urlencoded({ extended: true }));
 app.use(ipCheckMiddleware);
-
-//app.use(express.static("dist", { index: false }));
 
 app.use(morgan("tiny"));
 
@@ -38,20 +36,13 @@ app.use("/auth", authRouter);
 app.use("/meetings", authMiddleware, meetingRouter);
 app.use(errorLogger).use(errorHandler);
 
-const PORT = Number(process.env.PORT) || 3001;
-const server = app.listen(PORT, () => {
-  console.log("Server listening on", PORT);
-
-  if (!process.env.ALLOWED_GOOGLE_DOMAIN) {
-    console.warn(
-      "ALLOWED_GOOGLE_DOMAIN not set — any Google account will be accepted.",
-    );
-  }
+const server = app.listen(ENV.PORT, () => {
+  console.log("Server listening on", ENV.PORT);
 });
 
 // Graceful shutdown
 process.on("SIGTERM", () => {
-  if (CONFIG.NODE_ENV === "dev") return;
+  if (ENV.NODE_ENV === "dev") return;
   console.debug("SIGTERM signal received: closing HTTP server");
   server.close(() => {
     console.debug("HTTP server closed");

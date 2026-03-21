@@ -1,13 +1,13 @@
 import type { RequestHandler } from "express";
 
-import { CONFIG } from "../../config";
+import { ENV } from "../../env";
 import { OAuth2Client, UserRefreshClient } from "google-auth-library";
 import { getAuthToken } from "./utils/getAuthToken";
 import { googleAuthSchema } from "../../../schemas/authUser";
 
 const oAuth2Client = new OAuth2Client(
-  CONFIG.GOOGLE_CLIENT_ID,
-  CONFIG.GOOGLE_CLIENT_SECRET,
+  ENV.GOOGLE_CLIENT_ID,
+  ENV.GOOGLE_CLIENT_SECRET,
   "postmessage",
 );
 
@@ -24,7 +24,7 @@ export const authController = {
 
     const ticket = await oAuth2Client.verifyIdToken({
       idToken: authToken,
-      audience: CONFIG.GOOGLE_CLIENT_ID,
+      audience: ENV.GOOGLE_CLIENT_ID,
     });
 
     res.json(googleAuthSchema.parse(ticket.getPayload()));
@@ -32,8 +32,8 @@ export const authController = {
 
   async refreshToken(req, res) {
     const user = new UserRefreshClient(
-      CONFIG.GOOGLE_CLIENT_ID,
-      CONFIG.GOOGLE_CLIENT_SECRET,
+      ENV.GOOGLE_CLIENT_ID,
+      ENV.GOOGLE_CLIENT_SECRET,
       req.body.refreshToken,
     );
     const { credentials } = await user.refreshAccessToken(); // obtain new tokens
