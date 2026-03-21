@@ -1,5 +1,5 @@
 {
-  "name": "meeting-booker",
+  "name": "@meeting-calendar/root",
   "private": true,
   "version": "1.0.0",
   "type": "module",
