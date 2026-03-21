@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch --env-file=.env src/index.ts",
-    "typecheck": "tsc --noEmit",
-    "build": "tsc --noEmit"
+    "typecheck": "tsc -b --noEmit ",
+    "build": "tsc"
   },
   "dependencies": {
     "@meeting-calendar/shared": "*",
