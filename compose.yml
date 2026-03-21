@@ -7,10 +7,11 @@ services:
     ports:
       - 3001:3001
     volumes:
-      - ./src/server/:/app/src/
-      - ./src/types/:/app/src/types/
+      # Mirror repo layout: entry is src/server/index.ts, shared code under src/{schemas,types,constants}
+      - ./src:/app/src
       - ./package.json:/app/package.json
       - ./package-lock.json:/app/package-lock.json
+      - ./.env:/app/.env:ro
 
   frontend:
     build:
@@ -22,12 +23,12 @@ services:
     ports:
       - 5173:5173
     volumes:
-      - ./src/client/:/app/src/
-      - ./src/types/:/app/src/types/
+      - ./src:/app/src
+      - ./index.html:/app/index.html
       - ./package.json:/app/package.json
       - ./package-lock.json:/app/package-lock.json
-      - ./node_modules/:/app/node_modules/
       - ./vite.config.ts:/app/vite.config.ts
       - ./tsconfig.json:/app/tsconfig.json
       - ./tsconfig.app.json:/app/tsconfig.app.json
       - ./tsconfig.node.json:/app/tsconfig.node.json
+      - ./.env:/app/.env:ro
