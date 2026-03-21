@@ -1,30 +1,9 @@
-import { useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import CalendarIcon from "./Icons/CalendarIcon";
 import GoogleLogo from "./Icons/GoogleLogo";
 
 export function LoginPage() {
   const { login, error, loading } = useAuth();
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const err = params.get("error");
-    if (err === "domain_not_allowed") {
-      params.delete("error");
-      const newUrl =
-        window.location.pathname +
-        (params.toString() ? "?" + params.toString() : "");
-      window.history.replaceState({}, "", newUrl);
-    }
-  }, []);
-
-  const urlError = new URLSearchParams(window.location.search).get("error");
-  const displayError =
-    urlError === "domain_not_allowed"
-      ? "Only accounts from the allowed Google Workspace domain can sign in."
-      : urlError
-        ? "Sign in failed. Please try again."
-        : error;
 
   return (
     <div
@@ -44,12 +23,12 @@ export function LoginPage() {
         <p className="text-secondary-500 mb-8 text-center text-sm font-light">
           Sign in with your Google account to continue
         </p>
-        {displayError && (
+        {error && (
           <p
             className="mb-4 rounded-xl bg-red-50 px-4 py-2.5 text-center text-sm font-medium text-red-600"
             role="alert"
           >
-            {displayError}
+            {error}
           </p>
         )}
         <button
