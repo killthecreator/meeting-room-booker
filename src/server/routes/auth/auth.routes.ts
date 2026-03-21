@@ -6,13 +6,12 @@ import { validateBodyMiddleware } from "../../middlewares/validateBody";
 
 const router = Router();
 
-router.get("/google/callback", authController.generateSession);
-router.get("/google/verify-token", authController.verifyToken);
 router.post(
-  "/google/refresh-token",
-  validateBodyMiddleware(z.object({ refreshToken: z.string() })),
-  authController.refreshToken,
+  "/google/callback",
+  validateBodyMiddleware(z.object({ code: z.string() })),
+  authController.generateSession,
 );
+router.get("/google/verify-token", authController.verifyToken);
 router.get("/google/logout", authController.logout);
 
 export default router;

@@ -4,7 +4,7 @@ import type {
   MeetingDTO,
   UpdateMeetingDTO,
 } from "../types/Meeting.type";
-import type { Credentials } from "google-auth-library";
+
 import type { AuthUser } from "../types/AuthUser.type";
 
 const apiWrapper = axios.create({
@@ -29,17 +29,14 @@ export const api = {
   },
 
   auth: {
-    async generateSession(params: { code: string }) {
-      return apiWrapper.get("/auth/google/callback", { params });
+    async generateSession(input: { code: string }) {
+      return apiWrapper.post("/auth/google/callback", input);
     },
     async logout() {
       return apiWrapper.get("/auth/google/logout");
     },
     async verifyToken() {
       return apiWrapper.get<AuthUser | undefined>("/auth/google/verify-token");
-    },
-    async refreshToken(body: { refreshToken: string }) {
-      return apiWrapper.post<Credentials>("/auth/google/refresh-token", body);
     },
   },
 };

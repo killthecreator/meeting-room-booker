@@ -46,18 +46,24 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const googleLogin = useGoogleLogin({
     onSuccess: async ({ code }) => {
-      setLoading(false);
-      await api.auth.generateSession({ code });
-      await getVerifiedUser();
+      try {
+        await api.auth.generateSession({ code });
+        await getVerifiedUser();
+      } catch {
+        setError("Sign in failed. Please try again.");
+      } finally {
+        setLoading(false);
+      }
     },
     onError: () => {
-      setLoading(false);
       setError("Sign in failed. Please try again.");
+      setLoading(false);
     },
     flow: "auth-code",
   });
 
   const login = useCallback(async () => {
+    setError(null);
     setLoading(true);
     googleLogin();
   }, [googleLogin]);
