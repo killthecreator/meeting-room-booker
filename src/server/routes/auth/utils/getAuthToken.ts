@@ -1,5 +1,5 @@
 import type { Request } from "express";
+import { SESSION_COOKIE_KEY } from "../../../../constants";
 
 export const getAuthToken = (req: Request): string | undefined =>
-  req.cookies?.session ||
-  (req.get("Authorization") || "").replace(/^Bearer\s+/i, "").trim();
+  req.cookies?.[SESSION_COOKIE_KEY];

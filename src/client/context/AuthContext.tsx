@@ -13,7 +13,7 @@ import { api } from "../api";
 
 import { googleLogout, useGoogleLogin } from "@react-oauth/google";
 import { googleAuthSchema } from "../../schemas/authUser";
-import { setStoredToken } from "../lib/storedAuthToken";
+import { cleanStoredToken, setStoredToken } from "../lib/storedAuthToken";
 import type { AxiosPromise } from "axios";
 
 type AuthContextValue = {
@@ -50,7 +50,7 @@ export function AuthProvider({
       }
       const token = res.data.id_token;
       const profile = jwtDecode(token);
-      setStoredToken(token);
+      setStoredToken(token, res.data.expiry_date);
       setUser(googleAuthSchema.parse(profile));
       setError(null);
     },
@@ -70,7 +70,7 @@ export function AuthProvider({
     setUser(undefined);
 
     googleLogout();
-    setStoredToken(null);
+    cleanStoredToken();
   }, []);
 
   const value = useMemo<AuthContextValue>(
