@@ -6,6 +6,7 @@ const envSchema = z.object({
   FRONTEND_ORIGIN: z.string(),
   NODE_ENV: z.union([z.literal("dev"), z.literal("production")]).default("dev"),
   PORT: z.coerce.number().default(3001),
+  JWT_SECRET: z.string(),
 });
 
 export const ENV = envSchema.parse(process.env);
