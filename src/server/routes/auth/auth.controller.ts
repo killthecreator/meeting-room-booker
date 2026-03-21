@@ -1,33 +1,39 @@
 import type { RequestHandler } from "express";
 
 import { ENV } from "../../env";
-import { OAuth2Client, UserRefreshClient } from "google-auth-library";
-import { getAuthToken } from "./utils/getAuthToken";
+import { UserRefreshClient } from "google-auth-library";
+import { getAuthToken } from "./../../utils/getAuthToken";
 import { googleAuthSchema } from "../../../schemas/authUser";
-
-const oAuth2Client = new OAuth2Client(
-  ENV.GOOGLE_CLIENT_ID,
-  ENV.GOOGLE_CLIENT_SECRET,
-  "postmessage",
-);
+import { SESSION_COOKIE_KEY } from "../../../constants";
+import { oAuth2Client } from "../../oauthClient";
+import { verifyAuthToken } from "../../utils/verifyAuthToken";
+import z from "zod";
 
 export const authController = {
   async generateSession(req, res) {
-    const { tokens } = await oAuth2Client.getToken(req.body.code); // exchange code for tokens
+    const code = z.string().parse(req.query.code);
+    const { tokens } = await oAuth2Client.getToken(code); // exchange code for tokens
 
-    res.json(tokens);
+    res.cookie(SESSION_COOKIE_KEY, tokens.id_token, {
+      expires: tokens.expiry_date ? new Date(tokens.expiry_date) : undefined,
+    });
+
+    res.send();
+  },
+
+  async logout(_req, res) {
+    res.clearCookie(SESSION_COOKIE_KEY);
+    res.send();
   },
 
   async verifyToken(req, res) {
     const authToken = getAuthToken(req);
     if (!authToken) return res.status(200).send();
 
-    const ticket = await oAuth2Client.verifyIdToken({
-      idToken: authToken,
-      audience: ENV.GOOGLE_CLIENT_ID,
-    });
+    const ticket = await verifyAuthToken(req);
+    const payload = ticket.getPayload();
 
-    res.json(googleAuthSchema.parse(ticket.getPayload()));
+    res.json(googleAuthSchema.parse(payload));
   },
 
   async refreshToken(req, res) {
@@ -39,4 +45,4 @@ export const authController = {
     const { credentials } = await user.refreshAccessToken(); // obtain new tokens
     res.json(credentials);
   },
-} satisfies Record<string, RequestHandler>;
+} satisfies Record<string, RequestHandler<never>>;

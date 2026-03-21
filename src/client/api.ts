@@ -29,8 +29,11 @@ export const api = {
   },
 
   auth: {
-    async google(body: { code: string }) {
-      return apiWrapper.post<Credentials>("/auth/google/callback", body);
+    async generateSession(params: { code: string }) {
+      return apiWrapper.get("/auth/google/callback", { params });
+    },
+    async logout() {
+      return apiWrapper.get("/auth/google/logout");
     },
     async verifyToken() {
       return apiWrapper.get<AuthUser | undefined>("/auth/google/verify-token");

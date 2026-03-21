@@ -2,22 +2,19 @@ import {
   createContext,
   use,
   useCallback,
+  useEffect,
   useMemo,
   useState,
   type ReactNode,
 } from "react";
 import type { AuthUser } from "../../types/AuthUser.type";
-import { jwtDecode } from "jwt-decode";
 
 import { api } from "../api";
 
 import { googleLogout, useGoogleLogin } from "@react-oauth/google";
-import { googleAuthSchema } from "../../schemas/authUser";
-import { cleanStoredToken, setStoredToken } from "../lib/storedAuthToken";
-import type { AxiosPromise } from "axios";
 
 type AuthContextValue = {
-  user: AuthUser | undefined;
+  user: AuthUser | null;
   loading: boolean;
   error: string | null;
   login: () => void;
@@ -27,33 +24,31 @@ type AuthContextValue = {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 type AuthProviderProps = {
-  verifyAuthTokenPromise: AxiosPromise<AuthUser | undefined>;
   children: ReactNode;
 };
 
-export function AuthProvider({
-  children,
-  verifyAuthTokenPromise,
-}: AuthProviderProps) {
-  const initUserRes = use(verifyAuthTokenPromise);
-
-  const [user, setUser] = useState<AuthUser | undefined>(initUserRes.data);
-  const [loading, setLoading] = useState(false);
+export function AuthProvider({ children }: AuthProviderProps) {
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const getVerifiedUser = useCallback(async () => {
+    await api.auth
+      .verifyToken()
+      .then((res) => !!res.data && setUser(res.data))
+      .catch((e) => setError(e.message))
+      .finally(() => setLoading(false));
+  }, []);
+
+  useEffect(() => {
+    void getVerifiedUser();
+  }, [getVerifiedUser]);
 
   const googleLogin = useGoogleLogin({
     onSuccess: async ({ code }) => {
       setLoading(false);
-      const res = await api.auth.google({ code });
-      if (!res.data.id_token) {
-        setError("Sign in failed: no id_token");
-        return;
-      }
-      const token = res.data.id_token;
-      const profile = jwtDecode(token);
-      setStoredToken(token, res.data.expiry_date);
-      setUser(googleAuthSchema.parse(profile));
-      setError(null);
+      await api.auth.generateSession({ code });
+      await getVerifiedUser();
     },
     onError: () => {
       setLoading(false);
@@ -67,11 +62,10 @@ export function AuthProvider({
     googleLogin();
   }, [googleLogin]);
 
-  const logout = useCallback(() => {
-    setUser(undefined);
-
+  const logout = useCallback(async () => {
+    setUser(null);
+    await api.auth.logout();
     googleLogout();
-    cleanStoredToken();
   }, []);
 
   const value = useMemo<AuthContextValue>(

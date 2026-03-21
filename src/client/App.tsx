@@ -4,22 +4,8 @@ import { ConfirmMeetingCreationProvider } from "./context/ConfirmMeetingCreation
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { MeetingsProvider } from "./context/MeetingsContext";
 import Header from "./components/Header";
-import { api } from "./api";
-import { Suspense } from "react";
-import { GoogleOAuthProvider } from "@react-oauth/google";
 
-const LoadingFallback = () => {
-  return (
-    <div className="flex min-h-screen items-center justify-center">
-      <div className="flex flex-col items-center gap-3">
-        <div className="border-primary-200 border-t-primary-600 h-8 w-8 animate-spin rounded-full border-[3px]" />
-        <p className="text-secondary-400 text-sm font-light tracking-wide">
-          Loading...
-        </p>
-      </div>
-    </div>
-  );
-};
+import { GoogleOAuthProvider } from "@react-oauth/google";
 
 function AppContent() {
   const { user } = useAuth();
@@ -41,14 +27,11 @@ function AppContent() {
 }
 
 export default function App() {
-  const verifyAuthTokenPromise = api.auth.verifyToken();
   return (
     <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID ?? ""}>
-      <Suspense fallback={<LoadingFallback />}>
-        <AuthProvider verifyAuthTokenPromise={verifyAuthTokenPromise}>
-          <AppContent />
-        </AuthProvider>
-      </Suspense>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
     </GoogleOAuthProvider>
   );
 }
