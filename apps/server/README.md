@@ -28,17 +28,17 @@ Use `.env` in this directory. Validated in `src/env.ts`:
 ## Scripts
 
 ```bash
-npm run dev        # tsx watch --env-file=.env src/index.ts
-npm run typecheck  # tsc --noEmit
-npm run build      # typecheck + esbuild bundle → dist/index.js
-npm run start      # node --env-file=.env dist/index.js
+bun run dev        # tsx watch src/index.ts
+bun run typecheck  # tsc --noEmit
+bun run build      # typecheck + esbuild bundle → dist/index.js
+bun run start      # bun dist/index.js (loads `.env` from this directory when present)
 ```
 
-From the **monorepo root**: `npm run dev:server`, `npm run build:server`, `npm run start:server`.
+From the **monorepo root**: `bun run dev:server`, `bun run build:server`, `bun run start:server`.
 
 ## Build
 
-Production output is a single **esbuild** ESM bundle: dependencies stay external (`--packages=external`), and `@meeting-calendar/shared` is aliased to the shared package sources. After `npm run build`, run **`dist/index.js`**.
+Production output is a single **esbuild** ESM bundle: dependencies stay external (`--packages=external`), and `@meeting-calendar/shared` is aliased to the shared package sources. After `bun run build`, run **`dist/index.js`** (e.g. via `bun run start`).
 
 ## Proxy and networking
 

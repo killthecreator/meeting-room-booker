@@ -16,13 +16,13 @@ API requests use **`withCredentials: true`** so httpOnly session cookies are sen
 ## Scripts
 
 ```bash
-npm run dev         # Vite dev server (port 5173, host: true)
-npm run typecheck   # tsc -b --noEmit
-npm run build       # tsc -b && vite build → dist/
-npm run start       # vite preview --host (serve built dist)
+bun run dev         # Vite dev server (port 5173, host: true)
+bun run typecheck   # tsc -b --noEmit
+bun run build       # tsc -b && vite build → dist/
+bun run start       # vite preview --host (serve built dist)
 ```
 
-From the **monorepo root**: `npm run dev:client`, `npm run build:client`, `npm run start:client`.
+From the **monorepo root**: `bun run dev:client`, `bun run build:client`, `bun run start:client`.
 
 ## API / CORS
 

@@ -12,14 +12,14 @@ Monorepo: meeting room booking calendar with **React + TypeScript + Vite**, **Ex
 
 ## Requirements
 
-- **Node.js** and **npm** (workspaces).
+- **[Bun](https://bun.sh)** (workspaces; lockfile: `bun.lock`).
 
 ## Install
 
 From the repository root:
 
 ```bash
-npm install
+bun install
 ```
 
 ## Environment variables
@@ -51,9 +51,9 @@ Requests from other addresses get **403**.
 From the **repository root**:
 
 ```bash
-npm run dev          # client (5173) and server (3001) in parallel
-npm run dev:client
-npm run dev:server
+bun run dev          # client (5173) and server (3001) in parallel
+bun run dev:client
+bun run dev:server
 ```
 
 API: `http://localhost:3001` (routes `/auth/...`, `/meetings`, `/health`). Set `VITE_API_URL` to that origin **without** an `/api` suffix.
@@ -61,20 +61,20 @@ API: `http://localhost:3001` (routes `/auth/...`, `/meetings`, `/health`). Set `
 ## Build and run (production)
 
 ```bash
-npm run build        # server first, then client
-npm run start        # client preview + Node server
+bun run build        # server first, then client
+bun run start        # client preview + server
 ```
 
-Also: `npm run build:client`, `npm run build:server`, `npm run start:client`, `npm run start:server`.
+Also: `bun run build:client`, `bun run build:server`, `bun run start:client`, `bun run start:server`.
 
 ## Other
 
-- **Lint / format:** `npm run lint`, `npm run prettier`.
-- **Docker:** Images use the **repository root** as build context (single root `package-lock.json`). From the repo root:
+- **Lint / format:** `bun run lint`, `bun run prettier`.
+- **Docker:** Images use the **repository root** as build context and **`bun.lock`**. From the repo root:
   - `docker compose build` — build backend + frontend (`target: dev`).
-  - `docker compose up` — run API on `3001` and Vite on `5173`. Backend loads `apps/server/.env`; set `VITE_GOOGLE_CLIENT_ID` in the environment or a `.env` next to `compose.yml` for the frontend service.
-  - One-off: `docker build -f apps/server/Dockerfile .` or `docker build -f apps/client/Dockerfile .`
-  - Production-style images: `docker build -f apps/server/Dockerfile --target production .` and `docker build -f apps/client/Dockerfile --target runner .` (pass `VITE_*` as `--build-arg` for the client build stage).
+  - `docker compose up` — run API on `3001` and Vite on `5173`. Backend uses `apps/server/.env`; frontend uses `apps/client/.env` (per `compose.yml`).
+  - One-off: `docker build -f infra/dockerfiles/backend.Dockerfile .` or `docker build -f infra/dockerfiles/frontend.Dockerfile .`
+  - Production-style images: `docker build -f infra/dockerfiles/backend.Dockerfile --target production .` and `docker build -f infra/dockerfiles/frontend.Dockerfile --target runner .` (pass `VITE_*` as `--build-arg` for the client build stage).
   - `Makefile` still runs `docker-compose up -d` / `down` against this `compose.yml`.
 
 ## Package documentation
