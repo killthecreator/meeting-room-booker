@@ -27,10 +27,10 @@ export function DraftMeetingBlock({
   return (
     <div
       ref={ref}
-      className="absolute top-1.5 bottom-1.5 flex min-w-[40px] items-center overflow-visible rounded-lg border-2 border-dashed border-primary-400/60 bg-primary-100/40 backdrop-blur-sm dark:border-primary-500/45 dark:bg-primary-950/40"
+      className="border-primary-400/60 bg-primary-100/40 dark:border-primary-500/45 dark:bg-primary-950/40 absolute top-1.5 bottom-1.5 flex min-w-[40px] items-center overflow-visible rounded-lg border-2 border-dashed px-2.5 backdrop-blur-sm"
       style={{ left: `${left}%`, width: `${width}%` }}
     >
-      <span className="inline-block max-w-full min-w-0 flex-1 overflow-hidden text-[13px] font-medium text-ellipsis whitespace-nowrap text-primary-700 dark:text-primary-300">
+      <span className="text-primary-700 dark:text-primary-300 inline-block max-w-full min-w-0 flex-1 overflow-hidden text-[13px] font-medium text-ellipsis whitespace-nowrap">
         {name}
       </span>
     </div>
