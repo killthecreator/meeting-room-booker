@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "typecheck": "tsc -b --noEmit",
-    "build": "tsc -b && vite build"
+    "build": "tsc -b && vite build",
+    "start": "vite preview --host"
   },
   "dependencies": {
     "@meeting-calendar/shared": "*",
@@ -24,7 +25,6 @@
     "@vitejs/plugin-react": "^6.0.0",
     "prettier-plugin-tailwindcss": "^0.7.2",
     "tailwindcss": "^4.2.1",
-    "typescript": "~5.9.3",
     "vite": "^8.0.0"
   }
 }

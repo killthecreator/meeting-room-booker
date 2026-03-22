@@ -15,7 +15,6 @@ import { googleLogout, useGoogleLogin } from "@react-oauth/google";
 
 type AuthContextValue = {
   user: AuthUser | null;
-  loading: boolean;
   error: string | null;
   login: () => void;
   logout: () => void;
@@ -29,15 +28,13 @@ type AuthProviderProps = {
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<AuthUser | null>(null);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const getVerifiedUser = useCallback(async () => {
     await api.auth
       .verifyToken()
       .then((res) => !!res.data && setUser(res.data))
-      .catch((e) => setError(e.message))
-      .finally(() => setLoading(false));
+      .catch((e) => setError(e.message));
   }, []);
 
   useEffect(() => {
@@ -51,20 +48,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
         await getVerifiedUser();
       } catch {
         setError("Sign in failed. Please try again.");
-      } finally {
-        setLoading(false);
       }
     },
     onError: () => {
       setError("Sign in failed. Please try again.");
-      setLoading(false);
     },
+
     flow: "auth-code",
   });
 
   const login = useCallback(async () => {
     setError(null);
-    setLoading(true);
     googleLogin();
   }, [googleLogin]);
 
@@ -77,12 +71,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const value = useMemo<AuthContextValue>(
     () => ({
       user,
-      loading,
       error,
       login,
       logout,
     }),
-    [error, loading, login, logout, user],
+    [error, login, logout, user],
   );
 
   return <AuthContext value={value}>{children}</AuthContext>;

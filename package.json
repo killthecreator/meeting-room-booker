@@ -14,6 +14,9 @@
     "build:client": "npm run build --workspace=@meeting-calendar/client",
     "build:server": "npm run build --workspace=@meeting-calendar/server",
     "build": "npm run build:server && npm run build:client",
+    "start:client": "npm run start --workspace=@meeting-calendar/client",
+    "start:server": "npm run start --workspace=@meeting-calendar/server",
+    "start": "concurrently -n client,server -c blue,magenta \"npm run start:client\" \"npm run start:server\"",
     "lint": "eslint .",
     "prettier": "prettier --write ."
   },
