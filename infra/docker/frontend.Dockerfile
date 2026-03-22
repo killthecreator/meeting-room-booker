@@ -7,12 +7,14 @@ FROM oven/bun:${BUN_VERSION}-slim AS deps
 
 WORKDIR /app
 
+# Copy only package files first
 # All workspace manifests required for a valid root install; TypeScript lives at the root
 COPY package.json bun.lock tsconfig.json ./
 COPY apps/client/package.json ./apps/client/
 COPY apps/server/package.json ./apps/server/
 COPY packages/shared/package.json ./packages/shared/
 
+# Install dependencies
 RUN bun install --frozen-lockfile
 
 FROM deps AS dev
@@ -24,9 +26,9 @@ COPY packages/shared ./packages/shared
 EXPOSE 5173
 CMD ["bun", "run", "-F", "@meeting-calendar/client", "dev"]
 
-# Builder
 FROM deps AS builder
 
+# Builder
 COPY apps/client ./apps/client
 COPY packages/shared ./packages/shared
 
@@ -39,8 +41,6 @@ ENV VITE_GOOGLE_CLIENT_ID=${VITE_GOOGLE_CLIENT_ID}
 
 RUN bun run build:client
 
-# Production
-FROM nginx:1.28-alpine AS runner
-COPY apps/client/nginx.conf /etc/nginx/conf.d/default.conf
-COPY --from=builder /app/apps/client/dist /usr/share/nginx/html
-EXPOSE 80
+# Production — static files only (no nginx); default target `build` is scratch with /dist for GCP / object storage
+FROM scratch AS build
+COPY --from=builder /app/apps/client/dist /dist

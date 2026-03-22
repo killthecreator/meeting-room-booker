@@ -71,10 +71,9 @@ Also: `bun run build:client`, `bun run build:server`, `bun run start:client`, `b
 
 - **Lint / format:** `bun run lint`, `bun run prettier`.
 - **Docker:** Images use the **repository root** as build context and **`bun.lock`**. From the repo root:
-  - `docker compose build` — build backend + frontend (`target: dev`).
-  - `docker compose up` — run API on `3001` and Vite on `5173`. Backend uses `apps/server/.env`; frontend uses `apps/client/.env` (per `compose.yml`).
-  - One-off: `docker build -f infra/docker/backend.Dockerfile .` or `docker build -f infra/docker/frontend.Dockerfile .`
-  - Production-style images: `docker build -f infra/docker/backend.Dockerfile --target production .` and `docker build -f infra/docker/frontend.Dockerfile --target runner .` (pass `VITE_*` as `--build-arg` for the client build stage).
+  - `docker compose up` — backend `production` on `3001`, frontend **Vite dev** on `5173` (see `compose.yml` for `env_file` / volumes).
+  - Backend image: `docker build -f infra/docker/backend.Dockerfile --target production .`
+  - Frontend **static build only** (no nginx): `docker build -f infra/docker/frontend.Dockerfile --target build --build-arg VITE_API_URL=... --build-arg VITE_GOOGLE_CLIENT_ID=... .` — artifact at image path `/dist` for GCS / Firebase Hosting / CDN (see comments in the Dockerfile for `docker cp` / BuildKit `-o`).
   - `Makefile` still runs `docker-compose up -d` / `down` against this `compose.yml`.
 
 ## Package documentation
