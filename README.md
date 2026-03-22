@@ -1,105 +1,79 @@
 # Meeting Room Booker
 
-React + TypeScript + Vite app for booking meeting rooms, with **Sign in with Google** (optionally restricted to a Google Workspace domain).
+Monorepo: meeting room booking calendar with **React + TypeScript + Vite**, **Express** backend, shared types and schemas in **`@meeting-calendar/shared`**. Sign-in via **Google** (OAuth authorization code flow).
 
-## Google SSO
+## Layout
 
-1. In [Google Cloud Console](https://console.cloud.google.com/apis/credentials) create an **OAuth 2.0 Client ID** (Web application).
-2. Add an **Authorized redirect URI**. It must match `GOOGLE_REDIRECT_URI` in `.env` exactly:
-   - Dev (Vite proxy): `http://localhost:5173/api/auth/google/callback`
-   - Production: `https://your-domain.com/api/auth/google/callback` (or your API origin if different).
-3. Copy `.env.example` to `.env` and set:
-   - `GOOGLE_REDIRECT_URI`: same URL you added in Google Console (e.g. `http://localhost:5173/api/auth/google/callback` in dev).
-   - `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` from the OAuth client.
-   - `ALLOWED_GOOGLE_DOMAIN`: your Google Workspace domain (e.g. `company.com`) to allow only that domain; leave empty to allow any Google account.
-   - `SESSION_SECRET`: a long random string for signing sessions.
-   - `FRONTEND_ORIGIN`: in dev `http://localhost:5173`, in production your app’s origin.
-4. Run the backend: `npm run dev:server` (port 3001). Run the frontend: `npm run dev` (port 5173; proxies `/api` to the server).
+| Path | Package | Description |
+|------|---------|-------------|
+| `apps/client` | `@meeting-calendar/client` | SPA (Vite, Tailwind) |
+| `apps/server` | `@meeting-calendar/server` | HTTP API |
+| `packages/shared` | `@meeting-calendar/shared` | Zod schemas and DTO types shared by client and server |
 
-## Restrict access to a specific network (e.g. office Wi‑Fi)
+## Requirements
 
-Browsers cannot tell a web app which Wi‑Fi you’re on. The server can instead allow only IP addresses from your network. When users connect to your office Wi‑Fi, they get an IP in that subnet.
+- **Node.js** and **npm** (workspaces).
 
-1. Set **`ALLOWED_NETWORK`** in `.env` to your network’s IPv4 CIDR(s), comma-separated:
-   - One subnet: `ALLOWED_NETWORK=192.168.1.0/24` (typical home/office: 192.168.1.1–254)
-   - Several: `ALLOWED_NETWORK=192.168.1.0/24,10.0.0.0/8`
-2. Find your Wi‑Fi’s subnet: on a device connected to that Wi‑Fi, run `ipconfig` (Windows) or `ifconfig` / `ip addr` (Mac/Linux) and note the local IP (e.g. 192.168.1.45). Use that network, e.g. 192.168.1.0/24.
-3. If the request comes through a reverse proxy, the server uses the `X-Forwarded-For` header; ensure your proxy is trusted (`trust proxy` is enabled).
+## Install
 
-Requests from IPs outside the allowed range get **403** and the message: _Access allowed only from the allowed network (e.g. office Wi‑Fi)._
+From the repository root:
 
----
-
-# React + TypeScript + Vite
-
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
-
-Currently, two official plugins are available:
-
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(["dist"]),
-  {
-    files: ["**/*.{ts,tsx}"],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ["./tsconfig.node.json", "./tsconfig.app.json"],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-]);
+```bash
+npm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Environment variables
 
-```js
-// eslint.config.js
-import reactX from "eslint-plugin-react-x";
-import reactDom from "eslint-plugin-react-dom";
+See the [server README](apps/server/README.md) and [client README](apps/client/README.md) for details.
 
-export default defineConfig([
-  globalIgnores(["dist"]),
-  {
-    files: ["**/*.{ts,tsx}"],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs["recommended-typescript"],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ["./tsconfig.node.json", "./tsconfig.app.json"],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-]);
+**Server** (`apps/server/.env`): `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `FRONTEND_ORIGIN`, optional `PORT` (default `3001`), `NODE_ENV` (`dev` | `production`), optional `ALLOWED_NETWORK`.
+
+**Client** (`apps/client/.env`): `VITE_API_URL` (API base URL, e.g. `http://localhost:3001`), `VITE_GOOGLE_CLIENT_ID` (same Google client ID as on the server—it is public).
+
+## Google OAuth
+
+1. In [Google Cloud Console](https://console.cloud.google.com/apis/credentials), create an **OAuth 2.0 Client ID** (Web application).
+2. Under **Authorized JavaScript origins**, add the frontend origin, e.g. `http://localhost:5173`.
+3. Under **Authorized redirect URIs**, for `@react-oauth/google` with `flow: "auth-code"`, you typically add **`postmessage`** (see the [library docs](https://www.npmjs.com/package/@react-oauth/google)).
+4. Set `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` in the server `.env` and `VITE_GOOGLE_CLIENT_ID` in the client `.env`.
+
+## Restricting access by network (e.g. office Wi‑Fi)
+
+The browser cannot tell the app which Wi‑Fi you are on. The server can allow requests only from IPs in configured subnets.
+
+1. In `apps/server/.env`, set **`ALLOWED_NETWORK`**: comma-separated IPv4 CIDRs, e.g. `192.168.1.0/24` or `192.168.1.0/24,10.0.0.0/8`. Empty means no restriction.
+2. Behind a reverse proxy, **`trust proxy`** is enabled; configure `X-Forwarded-For` correctly.
+
+Requests from other addresses get **403**.
+
+## Development
+
+From the **repository root**:
+
+```bash
+npm run dev          # client (5173) and server (3001) in parallel
+npm run dev:client
+npm run dev:server
 ```
+
+API: `http://localhost:3001` (routes `/auth/...`, `/meetings`, `/health`). Set `VITE_API_URL` to that origin **without** an `/api` suffix.
+
+## Build and run (production)
+
+```bash
+npm run build        # server first, then client
+npm run start        # client preview + Node server
+```
+
+Also: `npm run build:client`, `npm run build:server`, `npm run start:client`, `npm run start:server`.
+
+## Other
+
+- **Lint / format:** `npm run lint`, `npm run prettier`.
+- **Docker:** `compose.yml` at the repo root; `Makefile` runs `docker-compose up -d` / `down`. Building images from `apps/*` in a monorepo may need a root build context and Dockerfiles adjusted for workspaces.
+
+## Package documentation
+
+- [Client (`apps/client`)](apps/client/README.md)
+- [Server (`apps/server`)](apps/server/README.md)
+- [Shared (`packages/shared`)](packages/shared/README.md)
