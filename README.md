@@ -73,8 +73,8 @@ Also: `bun run build:client`, `bun run build:server`, `bun run start:client`, `b
 - **Docker:** Images use the **repository root** as build context and **`bun.lock`**. From the repo root:
   - `docker compose build` — build backend + frontend (`target: dev`).
   - `docker compose up` — run API on `3001` and Vite on `5173`. Backend uses `apps/server/.env`; frontend uses `apps/client/.env` (per `compose.yml`).
-  - One-off: `docker build -f infra/dockerfiles/backend.Dockerfile .` or `docker build -f infra/dockerfiles/frontend.Dockerfile .`
-  - Production-style images: `docker build -f infra/dockerfiles/backend.Dockerfile --target production .` and `docker build -f infra/dockerfiles/frontend.Dockerfile --target runner .` (pass `VITE_*` as `--build-arg` for the client build stage).
+  - One-off: `docker build -f infra/docker/backend.Dockerfile .` or `docker build -f infra/docker/frontend.Dockerfile .`
+  - Production-style images: `docker build -f infra/docker/backend.Dockerfile --target production .` and `docker build -f infra/docker/frontend.Dockerfile --target runner .` (pass `VITE_*` as `--build-arg` for the client build stage).
   - `Makefile` still runs `docker-compose up -d` / `down` against this `compose.yml`.
 
 ## Package documentation
