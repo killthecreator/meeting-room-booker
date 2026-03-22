@@ -3,7 +3,7 @@ services:
     build:
       context: .
       dockerfile: infra/docker/backend.Dockerfile
-      target: dev
+      target: production
     ports:
       - "3001:3001"
     env_file:
@@ -16,7 +16,7 @@ services:
     build:
       context: .
       dockerfile: infra/docker/frontend.Dockerfile
-      target: dev
+      target: runner
     depends_on:
       - backend
     ports:

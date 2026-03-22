@@ -3,13 +3,12 @@ import type { RequestHandler } from "express";
 import { googleAuthSchema } from "@meeting-calendar/shared";
 import { getAuthToken } from "../../utils/getAuthToken";
 import { SESSION_COOKIE_KEY } from "../../constants";
-import { oAuth2Client } from "../../oauthClient";
-import { verifyAuthToken } from "../../utils/verifyAuthToken";
 import { ENV } from "../../env";
+import { authService } from "./auth.service";
 
 export const authController = {
   async generateSession(req, res) {
-    const { tokens } = await oAuth2Client.getToken(req.body.code); // exchange code for tokens
+    const { tokens } = await authService.getToken(req.body.code);
 
     res.cookie(SESSION_COOKIE_KEY, tokens.id_token, {
       expires: tokens.expiry_date ? new Date(tokens.expiry_date) : undefined,
@@ -32,7 +31,8 @@ export const authController = {
     const authToken = getAuthToken(req);
     if (!authToken) return res.status(200).send();
 
-    const ticket = await verifyAuthToken(req);
+    const ticket = await authService.verifyToken(authToken);
+
     const payload = ticket.getPayload();
 
     res.json(googleAuthSchema.parse(payload));

@@ -41,6 +41,6 @@ RUN bun run build:client
 
 # Production
 FROM nginx:1.28-alpine AS runner
-COPY apps/client/docker/nginx-spa.conf /etc/nginx/conf.d/default.conf
+COPY apps/client/nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=builder /app/apps/client/dist /usr/share/nginx/html
 EXPOSE 80
