@@ -24,4 +24,6 @@ router
   )
   .delete(meetingsController.deleteMeeting);
 
+router.get("/events", meetingsController.meetingsEventsStream);
+
 export default router;

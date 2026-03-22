@@ -9,10 +9,27 @@ import {
 import type {
   CreateMeetingDTO,
   MeetingDTO,
+  MeetingSyncMessage,
   UpdateMeetingDTO,
 } from "@meeting-calendar/shared";
+import { meetingSyncMessageSchema } from "@meeting-calendar/shared";
 
-import { api } from "../api";
+import { api, API_URL } from "../api";
+
+function applyMeetingSync(
+  prev: MeetingDTO[],
+  msg: MeetingSyncMessage,
+): MeetingDTO[] {
+  switch (msg.action) {
+    case "add":
+      if (prev.some((m) => m.id === msg.meeting.id)) return prev;
+      return [...prev, msg.meeting];
+    case "update":
+      return prev.map((m) => (m.id === msg.meeting.id ? msg.meeting : m));
+    case "delete":
+      return prev.filter((m) => m.id !== msg.meeting.id);
+  }
+}
 
 type MeetingsContextValue = {
   meetings: MeetingDTO[];
@@ -30,6 +47,29 @@ type MeetingsProviderProps = {
 export function MeetingsProvider({ children }: MeetingsProviderProps) {
   const [meetings, setMeetings] = useState<MeetingDTO[]>([]);
 
+  useEffect(() => {
+    const eventSource = new EventSource(`${API_URL}/meetings/events`, {
+      withCredentials: true,
+    });
+
+    const onMessage = (ev: MessageEvent<string>) => {
+      try {
+        const json = JSON.parse(ev.data);
+        const parsed = meetingSyncMessageSchema.parse(json);
+        setMeetings((prev) => applyMeetingSync(prev, parsed));
+      } catch (e) {
+        console.error(e);
+      }
+    };
+
+    eventSource.addEventListener("message", onMessage);
+
+    return () => {
+      eventSource.removeEventListener("message", onMessage);
+      eventSource.close();
+    };
+  }, []);
+
   const getMeetings = useCallback(async (): Promise<MeetingDTO[]> => {
     const res = await api.meetings.getAll();
 
@@ -41,19 +81,10 @@ export function MeetingsProvider({ children }: MeetingsProviderProps) {
     (async () => getMeetings())();
   }, [getMeetings]);
 
-  useEffect(() => {
-    const intervalId = setInterval(async () => {
-      await getMeetings();
-    }, 20_000);
-
-    return () => clearInterval(intervalId);
-  }, [getMeetings]);
-
   const createMeeting = useCallback(
     async (input: CreateMeetingDTO): Promise<MeetingDTO> => {
       const res = await api.meetings.createMeeting(input);
 
-      setMeetings((prev) => prev.concat(res.data));
       return res.data;
     },
     [],
@@ -61,8 +92,6 @@ export function MeetingsProvider({ children }: MeetingsProviderProps) {
 
   const deleteMeeting = useCallback(async (id: string): Promise<void> => {
     await api.meetings.deleteById(id);
-
-    setMeetings((prev) => prev.filter((m) => m.id !== id));
   }, []);
 
   const updateMeeting = useCallback(
@@ -72,9 +101,7 @@ export function MeetingsProvider({ children }: MeetingsProviderProps) {
       if (updates.end) body.end = updates.end;
       if (Object.keys(body).length === 0) return;
 
-      const res = await api.meetings.updateById(id, body);
-
-      setMeetings((prev) => prev.map((m) => (m.id === id ? res.data : m)));
+      await api.meetings.updateById(id, body);
     },
     [],
   );

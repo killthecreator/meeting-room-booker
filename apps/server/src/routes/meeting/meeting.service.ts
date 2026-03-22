@@ -73,5 +73,6 @@ export const meetingsService = {
       throw new AuthenticationError("Not enough permissions");
     }
     db.prepare("DELETE FROM meetings WHERE id = ?").run(id);
+    return meeting;
   },
 };

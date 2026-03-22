@@ -6,8 +6,10 @@ import type {
   UpdateMeetingDTO,
 } from "@meeting-calendar/shared";
 
+export const API_URL = import.meta.env.VITE_API_URL;
+
 const apiWrapper = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL: API_URL,
   withCredentials: true,
 });
 

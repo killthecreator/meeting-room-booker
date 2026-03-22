@@ -15,3 +15,9 @@ export const createMeetingDTOSchema = meetingSchema.omit({ id: true });
 export const updateMeetingDTOSchema = meetingSchema
   .omit({ id: true, owner: true })
   .partial();
+
+/** SSE / real-time: server pushes after REST mutations */
+export const meetingSyncMessageSchema = z.object({
+  action: z.enum(["add", "update", "delete"]),
+  meeting: meetingSchema,
+});
