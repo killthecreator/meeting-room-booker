@@ -131,7 +131,7 @@ export function MeetingCalendar() {
 
   return (
     <div
-      className="animate-fade-in shadow-primary-900/5 relative flex h-fit max-h-[90vh] w-[90vw] justify-center overflow-auto rounded-2xl border border-white/60 bg-white/80 shadow-xl backdrop-blur-xl"
+      className="animate-fade-in shadow-primary-900/5 relative flex h-fit max-h-[90vh] w-[90vw] justify-center overflow-auto rounded-2xl border border-white/60 bg-white/80 shadow-xl backdrop-blur-xl dark:border-zinc-600/50 dark:bg-zinc-900/85 dark:shadow-black/30"
       style={{
         maxWidth:
           VERT_HEADER_CELL_WIDTH + CONTENT_CELL_WIDTH * TIMELINE_HOURS + 2, // some random shift. idk why,

@@ -320,7 +320,7 @@ export const ConfirmMeetingCreationProvider = ({
         createPortal(
           <dialog
             ref={dialogRef}
-            className="animate-fade-in shadow-secondary-900/10 fixed w-[320px] rounded-2xl border border-white/60 bg-white/90 p-5 shadow-2xl backdrop-blur-xl backdrop:bg-transparent"
+            className="animate-fade-in shadow-secondary-900/10 fixed w-[320px] rounded-2xl border border-white/60 bg-white/90 p-5 shadow-2xl backdrop-blur-xl backdrop:bg-transparent dark:border-zinc-600/60 dark:bg-zinc-900/95 dark:shadow-black/50"
             onClick={handleDialogClick}
             onCancel={handleClose}
             style={
@@ -335,7 +335,7 @@ export const ConfirmMeetingCreationProvider = ({
           >
             <div className="flex flex-col gap-3">
               <div className="title-block">
-                <h2 className="text-secondary-900 text-base font-semibold tracking-tight">
+                <h2 className="text-base font-semibold tracking-tight text-secondary-900 dark:text-zinc-100">
                   Create Meeting
                 </h2>
               </div>
@@ -348,7 +348,7 @@ export const ConfirmMeetingCreationProvider = ({
                   onChange={handleFormChange}
                   value={formValues.name}
                   required
-                  className="border-secondary-200 text-secondary-900 placeholder:text-secondary-400 focus:border-primary-400 focus:ring-primary-100 rounded-xl border bg-white px-3 py-2 text-sm shadow-sm transition-colors duration-150 focus:ring-2 focus:outline-none"
+                  className="rounded-xl border border-secondary-200 bg-white px-3 py-2 text-sm text-secondary-900 shadow-sm transition-colors duration-150 placeholder:text-secondary-400 focus:border-primary-400 focus:ring-2 focus:ring-primary-100 focus:outline-none dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100 dark:placeholder:text-zinc-500 dark:focus:border-primary-500 dark:focus:ring-primary-900/40"
                   aria-label="Meeting name"
                 />
                 <textarea
@@ -356,13 +356,13 @@ export const ConfirmMeetingCreationProvider = ({
                   placeholder="Meeting Description"
                   onChange={handleFormChange}
                   value={formValues.description}
-                  className="border-secondary-200 text-secondary-900 placeholder:text-secondary-400 focus:border-primary-400 focus:ring-primary-100 resize-none rounded-xl border bg-white px-3 py-2 text-sm shadow-sm transition-colors duration-150 focus:ring-2 focus:outline-none"
+                  className="resize-none rounded-xl border border-secondary-200 bg-white px-3 py-2 text-sm text-secondary-900 shadow-sm transition-colors duration-150 placeholder:text-secondary-400 focus:border-primary-400 focus:ring-2 focus:ring-primary-100 focus:outline-none dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100 dark:placeholder:text-zinc-500 dark:focus:border-primary-500 dark:focus:ring-primary-900/40"
                   maxLength={300}
                   rows={4}
                 />
                 {overlapError && (
                   <p
-                    className="rounded-lg bg-red-50 px-3 py-2 text-sm font-medium text-red-600"
+                    className="rounded-lg bg-red-50 px-3 py-2 text-sm font-medium text-red-600 dark:bg-red-950/45 dark:text-red-400"
                     role="alert"
                   >
                     {overlapError}
@@ -370,7 +370,7 @@ export const ConfirmMeetingCreationProvider = ({
                 )}
                 <div className="flex flex-col gap-1.5">
                   <label
-                    className="text-secondary-500 text-xs font-semibold tracking-wider uppercase"
+                    className="text-xs font-semibold tracking-wider text-secondary-500 uppercase dark:text-zinc-400"
                     htmlFor="date"
                   >
                     Day
@@ -383,7 +383,7 @@ export const ConfirmMeetingCreationProvider = ({
                     max={options.maxDate}
                     onChange={handleFormChange}
                     value={formValues.date}
-                    className="border-secondary-200 text-secondary-900 focus:border-primary-400 focus:ring-primary-100 rounded-xl border bg-white px-3 py-2 text-sm shadow-sm transition-colors duration-150 focus:ring-2 focus:outline-none"
+                    className="rounded-xl border border-secondary-200 bg-white px-3 py-2 text-sm text-secondary-900 shadow-sm transition-colors duration-150 focus:border-primary-400 focus:ring-2 focus:ring-primary-100 focus:outline-none dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100 dark:focus:border-primary-500 dark:focus:ring-primary-900/40"
                     required
                   />
                 </div>
@@ -395,7 +395,7 @@ export const ConfirmMeetingCreationProvider = ({
                     onChange={handleFormChange}
                     value={formValues.start}
                   />
-                  <span className="text-secondary-400 text-sm">–</span>
+                  <span className="text-sm text-secondary-400 dark:text-zinc-500">–</span>
                   <InputTime
                     name="end"
                     min={endTimeInputMinFromStartTimeStr(formValues.start)}
@@ -408,14 +408,14 @@ export const ConfirmMeetingCreationProvider = ({
                 <div className="flex gap-2 self-end pt-1">
                   <button
                     ref={cancelBtnRef}
-                    className="border-secondary-200 text-secondary-700 hover:border-secondary-300 hover:bg-secondary-50 cursor-pointer rounded-xl border bg-white px-4 py-2 text-sm font-medium shadow-sm transition-all duration-200 active:scale-[0.97]"
+                    className="cursor-pointer rounded-xl border border-secondary-200 bg-white px-4 py-2 text-sm font-medium text-secondary-700 shadow-sm transition-all duration-200 hover:border-secondary-300 hover:bg-secondary-50 active:scale-[0.97] dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:border-zinc-500 dark:hover:bg-zinc-700"
                     onClick={handleClose}
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="from-primary-500 to-primary-600 shadow-primary-500/20 hover:from-primary-600 hover:to-primary-700 hover:shadow-primary-500/25 cursor-pointer rounded-xl bg-linear-to-r px-4 py-2 text-sm font-medium text-white shadow-md transition-all duration-200 hover:shadow-lg active:scale-[0.97]"
+                    className="cursor-pointer rounded-xl bg-linear-to-r from-primary-500 to-primary-600 px-4 py-2 text-sm font-medium text-white shadow-md shadow-primary-500/20 transition-all duration-200 hover:from-primary-600 hover:to-primary-700 hover:shadow-lg hover:shadow-primary-500/25 active:scale-[0.97]"
                   >
                     Confirm
                   </button>

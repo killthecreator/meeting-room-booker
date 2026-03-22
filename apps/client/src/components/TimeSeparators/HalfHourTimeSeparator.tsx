@@ -9,7 +9,7 @@ export const HalfHourTimeSeparator = ({
 }: HalfHourTimeSeparatorProps) => (
   <span
     className={cn(
-      "absolute bottom-0 left-[calc(50%-1px)] w-px bg-gray-500",
+      "absolute bottom-0 left-[calc(50%-1px)] w-px bg-gray-500 dark:bg-zinc-500",
       className,
     )}
   />

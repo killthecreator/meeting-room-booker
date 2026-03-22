@@ -15,12 +15,12 @@ export default function DayCell({ date }: DayTableItemProps) {
   return (
     <td
       className={cn(
-        "border-secondary-100 sticky left-0 z-1 flex w-[132px] min-w-[132px] items-center justify-center border-r py-2 backdrop-blur-sm transition-colors duration-200",
+        "border-secondary-100 sticky left-0 z-1 flex w-[132px] min-w-[132px] items-center justify-center border-r py-2 backdrop-blur-sm transition-colors duration-200 dark:border-zinc-800",
         weekend
-          ? "bg-secondary-100/60 text-secondary-400 cursor-default"
+          ? "bg-secondary-100/60 text-secondary-400 cursor-default dark:bg-zinc-800/45 dark:text-zinc-500"
           : today
-            ? "from-primary-50/90 to-primary-50/40 bg-linear-to-r"
-            : "from-secondary-50/80 group-hover/row:from-primary-50/50 group-hover/row:to-primary-50/20 bg-linear-to-r to-white/80",
+            ? "from-primary-50/90 to-primary-50/40 dark:from-primary-950/45 dark:to-primary-900/25 bg-linear-to-r"
+            : "from-secondary-50/80 group-hover/row:from-primary-50/50 group-hover/row:to-primary-50/20 dark:group-hover/row:from-primary-950/35 dark:group-hover/row:to-primary-900/20 bg-linear-to-r to-white/80 dark:from-zinc-900/95 dark:to-zinc-800/85",
       )}
       onClick={(e) => e.stopPropagation()}
     >
@@ -32,7 +32,7 @@ export default function DayCell({ date }: DayTableItemProps) {
               ? "text-secondary-400"
               : today
                 ? "text-primary-700"
-                : "text-secondary-800",
+                : "text-secondary-400",
           )}
         >
           {formatWeekday(date)}
@@ -41,10 +41,10 @@ export default function DayCell({ date }: DayTableItemProps) {
           className={cn(
             "flex items-center gap-1 text-[11px] font-medium",
             weekend
-              ? "text-secondary-300"
+              ? "text-secondary-300 dark:text-zinc-600"
               : today
-                ? "text-primary-600"
-                : "text-secondary-400",
+                ? "text-primary-600 dark:text-primary-400"
+                : "text-secondary-400 dark:text-zinc-500",
           )}
         >
           {today && (

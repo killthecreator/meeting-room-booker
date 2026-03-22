@@ -43,6 +43,16 @@
   ::selection {
     @apply bg-primary-200 text-primary-900;
   }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      color-scheme: dark;
+    }
+
+    ::selection {
+      @apply bg-primary-700 text-primary-50;
+    }
+  }
 }
 
 body {
@@ -54,9 +64,17 @@ body {
   justify-content: center;
   align-items: center;
   background: linear-gradient(135deg, #f0f4ff 0%, #faf5ff 40%, #fff1f2 100%);
+  color: #18181b;
   font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+@media (prefers-color-scheme: dark) {
+  body {
+    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 45%, #312e81 100%);
+    color: #e4e4e7;
+  }
 }
 
 @keyframes fade-in {

@@ -12,14 +12,15 @@ export function TimePerDayDistribution() {
         <div
           key={h}
           className={cn(
-            "border-secondary-200/70 relative flex w-full border-l",
-            isNonWorkingHour(h) && "bg-secondary-100/30",
-            isWorkBoundaryHour(h) && "border-primary-300/50 border-dashed",
+            "relative flex w-full border-l border-secondary-200/70 dark:border-zinc-700/50",
+            isNonWorkingHour(h) && "bg-secondary-100/30 dark:bg-zinc-800/25",
+            isWorkBoundaryHour(h) &&
+              "border-dashed border-primary-300/50 dark:border-primary-600/40",
           )}
         >
-          <FirstQuarterHourTimeSeparator className="bg-secondary-200/40 h-full" />
-          <HalfHourTimeSeparator className="bg-secondary-200/60 h-full" />
-          <SecondQuarterHourTimeSeparator className="bg-secondary-200/40 h-full" />
+          <FirstQuarterHourTimeSeparator className="h-full bg-secondary-200/40 dark:bg-zinc-600/35" />
+          <HalfHourTimeSeparator className="h-full bg-secondary-200/60 dark:bg-zinc-600/45" />
+          <SecondQuarterHourTimeSeparator className="h-full bg-secondary-200/40 dark:bg-zinc-600/35" />
         </div>
       ))}
     </div>

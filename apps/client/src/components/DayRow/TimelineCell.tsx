@@ -135,9 +135,9 @@ export default function TimelineCell({
       className={cn(
         "relative min-w-0 flex-1 p-0 transition-colors duration-200",
         today
-          ? "bg-primary-50/25"
-          : "group-hover/row:bg-primary-50/30 bg-white/60",
-        weekend && "bg-secondary-100/40",
+          ? "bg-primary-50/25 dark:bg-primary-950/30"
+          : "bg-white/60 group-hover/row:bg-primary-50/30 dark:bg-zinc-950/45 dark:group-hover/row:bg-primary-950/35",
+        weekend && "bg-secondary-100/40 dark:bg-zinc-800/30",
       )}
       {...(!weekend && {
         onClick: handleTimelineClick,

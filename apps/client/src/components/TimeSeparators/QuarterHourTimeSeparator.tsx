@@ -7,7 +7,12 @@ type QuarterHourTimeSeparatorProps = {
 const QuarterHourTimeSeparator = ({
   className,
 }: QuarterHourTimeSeparatorProps) => (
-  <span className={cn("absolute bottom-0 w-[0.5px] bg-gray-500", className)} />
+  <span
+    className={cn(
+      "absolute bottom-0 w-[0.5px] bg-gray-500 dark:bg-zinc-500",
+      className,
+    )}
+  />
 );
 
 export const FirstQuarterHourTimeSeparator = ({
