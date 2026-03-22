@@ -3,18 +3,24 @@
 
 ARG BUN_VERSION=1
 
-FROM oven/bun:${BUN_VERSION}-alpine AS deps
+FROM oven/bun:${BUN_VERSION}-slim AS deps
+
 WORKDIR /app
+
+# Copy only package files first
 COPY package.json bun.lock tsconfig.json ./
 COPY apps/client/package.json ./apps/client/
-COPY apps/server/package.json ./apps/server/
 COPY packages/shared/package.json ./packages/shared/
-RUN bun install --frozen-lockfile
+
+# Install dependencies
+RUN bun install --filter @meeting-calendar/client
 
 FROM deps AS dev
+
+# Copy source files
 COPY apps/client ./apps/client
 COPY packages/shared ./packages/shared
-WORKDIR /app
+
 EXPOSE 5173
 CMD ["bun", "run", "-F", "@meeting-calendar/client", "dev"]
 

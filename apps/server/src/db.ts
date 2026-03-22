@@ -1,7 +1,7 @@
-import { DatabaseSync } from "node:sqlite";
+import { Database } from "bun:sqlite";
 import cron from "node-cron";
 
-const db = new DatabaseSync(":memory:");
+const db = new Database(":memory:");
 
 db.exec(
   `CREATE TABLE IF NOT EXISTS meetings (
