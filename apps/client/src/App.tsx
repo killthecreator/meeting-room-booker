@@ -6,6 +6,8 @@ import { MeetingsProvider } from "./context/MeetingsContext";
 import Header from "./components/Header";
 
 import { GoogleOAuthProvider } from "@react-oauth/google";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/ReactToastify.css";
 
 function AppContent() {
   const { user } = useAuth();
@@ -32,6 +34,13 @@ export default function App() {
       <AuthProvider>
         <AppContent />
       </AuthProvider>
+      <ToastContainer
+        position="top-center"
+        autoClose={3000}
+        closeOnClick
+        pauseOnHover
+        theme="light"
+      />
     </GoogleOAuthProvider>
   );
 }

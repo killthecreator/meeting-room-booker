@@ -13,6 +13,7 @@ import type {
   UpdateMeetingDTO,
 } from "@meeting-calendar/shared";
 import { meetingSyncMessageSchema } from "@meeting-calendar/shared";
+import { toast } from "react-toastify";
 
 import { api, API_URL } from "../api";
 
@@ -33,7 +34,7 @@ function applyMeetingSync(
 
 type MeetingsContextValue = {
   meetings: MeetingDTO[];
-  createMeeting: (meeting: CreateMeetingDTO) => Promise<MeetingDTO>;
+  createMeeting: (meeting: CreateMeetingDTO) => Promise<void>;
   deleteMeeting: (id: string) => Promise<void>;
   updateMeeting: (id: string, updates: UpdateMeetingDTO) => Promise<void>;
 };
@@ -82,16 +83,25 @@ export function MeetingsProvider({ children }: MeetingsProviderProps) {
   }, [getMeetings]);
 
   const createMeeting = useCallback(
-    async (input: CreateMeetingDTO): Promise<MeetingDTO> => {
-      const res = await api.meetings.createMeeting(input);
-
-      return res.data;
+    async (input: CreateMeetingDTO): Promise<void> => {
+      try {
+        await api.meetings.createMeeting(input);
+        toast.success("Meeting created");
+      } catch (err) {
+        console.error(err);
+        toast.error("Failed to create meeting");
+      }
     },
     [],
   );
 
   const deleteMeeting = useCallback(async (id: string): Promise<void> => {
-    await api.meetings.deleteById(id);
+    try {
+      await api.meetings.deleteById(id);
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to delete meeting");
+    }
   }, []);
 
   const updateMeeting = useCallback(
@@ -101,7 +111,12 @@ export function MeetingsProvider({ children }: MeetingsProviderProps) {
       if (updates.end) body.end = updates.end;
       if (Object.keys(body).length === 0) return;
 
-      await api.meetings.updateById(id, body);
+      try {
+        await api.meetings.updateById(id, body);
+      } catch (err) {
+        console.error(err);
+        toast.error("Failed to update meeting");
+      }
     },
     [],
   );
