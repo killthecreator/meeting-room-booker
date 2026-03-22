@@ -1,6 +1,9 @@
-import type { CreateMeetingDTO, UpdateMeetingDTO } from "@meeting-calendar/shared";
+import type {
+  CreateMeetingDTO,
+  UpdateMeetingDTO,
+} from "@meeting-calendar/shared";
 import db from "../../db";
-import { NotFoundError } from "../../lib/customErrors";
+import { AuthenticationError, NotFoundError } from "../../lib/customErrors";
 import { dbMeetingToMeetingDTO } from "../../schemas/meeting.schema";
 
 export const meetingsService = {
@@ -38,11 +41,14 @@ export const meetingsService = {
     return this.getById(id);
   },
 
-  update(id: string, data: UpdateMeetingDTO) {
-    const entries = Object.entries(data);
-    if (entries.length === 0) return this.getById(id);
+  update(id: string, data: UpdateMeetingDTO, userId: string) {
+    const meeting = this.getById(id);
 
-    this.getById(id);
+    if (meeting.owner.id !== userId) {
+      throw new AuthenticationError("Not enough permissions");
+    }
+    const entries = Object.entries(data);
+    if (entries.length === 0) return meeting;
 
     const updates: string[] = [];
     const values: (number | string)[] = [];
@@ -60,8 +66,12 @@ export const meetingsService = {
     return this.getById(id);
   },
 
-  deleteById(id: string) {
-    this.getById(id);
+  deleteById(id: string, userId: string) {
+    const meeting = this.getById(id);
+
+    if (meeting.owner.id !== userId) {
+      throw new AuthenticationError("Not enough permissions");
+    }
     db.prepare("DELETE FROM meetings WHERE id = ?").run(id);
   },
 };

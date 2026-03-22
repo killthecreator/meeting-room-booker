@@ -12,12 +12,18 @@ export const meetingsController = {
   },
   updateMeeting(req: Request<{ id: string }>, res) {
     const { id } = req.params;
-    const updatedMeeting = meetingsService.update(id, req.body);
+
+    const updatedMeeting = meetingsService.update(
+      id,
+      req.body,
+      res.locals.userId,
+    );
     res.status(200).json(updatedMeeting);
   },
   deleteMeeting(req: Request<{ id: string }>, res) {
     const { id } = req.params;
-    meetingsService.deleteById(id);
+
+    meetingsService.deleteById(id, res.locals.userId);
     res.status(204).send();
   },
 } satisfies Record<string, RequestHandler<never>>;
