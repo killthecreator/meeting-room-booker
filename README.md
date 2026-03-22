@@ -70,7 +70,12 @@ Also: `npm run build:client`, `npm run build:server`, `npm run start:client`, `n
 ## Other
 
 - **Lint / format:** `npm run lint`, `npm run prettier`.
-- **Docker:** `compose.yml` at the repo root; `Makefile` runs `docker-compose up -d` / `down`. Building images from `apps/*` in a monorepo may need a root build context and Dockerfiles adjusted for workspaces.
+- **Docker:** Images use the **repository root** as build context (single root `package-lock.json`). From the repo root:
+  - `docker compose build` — build backend + frontend (`target: dev`).
+  - `docker compose up` — run API on `3001` and Vite on `5173`. Backend loads `apps/server/.env`; set `VITE_GOOGLE_CLIENT_ID` in the environment or a `.env` next to `compose.yml` for the frontend service.
+  - One-off: `docker build -f apps/server/Dockerfile .` or `docker build -f apps/client/Dockerfile .`
+  - Production-style images: `docker build -f apps/server/Dockerfile --target production .` and `docker build -f apps/client/Dockerfile --target runner .` (pass `VITE_*` as `--build-arg` for the client build stage).
+  - `Makefile` still runs `docker-compose up -d` / `down` against this `compose.yml`.
 
 ## Package documentation
 
