@@ -28,7 +28,7 @@ Use `.env` in this directory. Validated in `src/env.ts`:
 ## Scripts
 
 ```bash
-bun run dev        # tsx watch src/index.ts
+bun run dev        # bun --watch src/index.ts
 bun run typecheck  # tsc --noEmit
 bun run build      # typecheck + esbuild bundle → dist/index.js
 bun run start      # bun dist/index.js (loads `.env` from this directory when present)
