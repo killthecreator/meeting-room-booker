@@ -8,6 +8,9 @@ services:
       - "3001:3001"
     env_file:
       - ./apps/server/.env
+    volumes:
+      - ./apps/server/src/:/app/apps/server/src/
+      - ./apps/server/tsconfig.json/:/app/apps/server/tsconfig.json
 
   frontend:
     build:
@@ -20,3 +23,9 @@ services:
       - "5173:5173"
     env_file:
       - ./apps/client/.env
+    volumes:
+      - ./apps/client/src/:/app/apps/client/src/
+      - ./apps/client/index.html:/app/apps/client/index.html
+      - ./apps/client/tsconfig.app.json/:/app/apps/client/tsconfig.app.json
+      - ./apps/client/tsconfig.json/:/app/apps/client/tsconfig.json
+      - ./apps/client/tsconfig.node.json/:/app/apps/client/tsconfig.node.json

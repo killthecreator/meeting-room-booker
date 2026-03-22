@@ -9,13 +9,14 @@ import { errorLogger } from "./middlewares/errorLogger";
 import { authMiddleware } from "./middlewares/authMiddleware";
 import cors from "cors";
 import { ENV } from "./env";
+import { limiter } from "./middlewares/rateLimitter";
 
 const app = express();
 app.use(cors({ credentials: true, origin: ENV.FRONTEND_ORIGIN }));
 app.set("trust proxy", 1);
 app.use(cookieParser());
 app.use(express.json());
-//app.use(limiter);
+app.use(limiter);
 app.use(express.urlencoded({ extended: true }));
 app.use(ipCheckMiddleware);
 
