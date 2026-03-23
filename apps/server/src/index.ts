@@ -38,7 +38,7 @@ app.use("/auth", authRouter);
 app.use("/meetings", authMiddleware, meetingRouter);
 app.use(errorLogger).use(errorHandler);
 
-const server = app.listen(ENV.PORT, () => {
+const server = app.listen(ENV.PORT, "0.0.0.0", () => {
   console.log("Server listening on", ENV.PORT);
 });
 
