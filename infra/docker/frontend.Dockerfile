@@ -39,12 +39,15 @@ RUN bun run build:client
 FROM scratch AS build
 COPY --from=builder /app/apps/client/dist /dist
 
-# Production — nginx serves SPA and proxies API to Compose service `backend:3001`
+# Production — nginx serves SPA and proxies API (BACKEND_PROXY_URL at runtime; Compose default backend:3001)
 FROM nginx:1.27-alpine AS runner
 
-#Copying our build as nginx root. Used in nginx.conf in http.server.root
-COPY --from=builder /app/apps/client/dist /usr/share/nginx/html 
+COPY --from=builder /app/apps/client/dist /usr/share/nginx/html
 
-#Copying the config itself
-COPY apps/client/nginx.conf /etc/nginx/nginx.conf
-CMD ["nginx", "-g", "daemon off;"]
+COPY apps/client/nginx.conf.template /etc/nginx/nginx.conf.template
+COPY apps/client/docker-entrypoint-nginx.sh /docker-entrypoint-nginx.sh
+RUN chmod +x /docker-entrypoint-nginx.sh
+
+EXPOSE 3000
+
+ENTRYPOINT ["/docker-entrypoint-nginx.sh"]

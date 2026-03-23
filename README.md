@@ -28,7 +28,7 @@ See the [server README](apps/server/README.md) and [client README](apps/client/R
 
 **Server** (`apps/server/.env`): `GOOGLE_CLIENT_SECRET`, `FRONTEND_ORIGIN`, optional `PORT` (default `3001`), `NODE_ENV` (`dev` | `production`), optional `ALLOWED_NETWORK`. The Google OAuth **Web client ID** (public) lives in [`apps/server/src/config.ts`](apps/server/src/config.ts).
 
-**Client:** the same **Web client ID** is in [`apps/client/src/config.ts`](apps/client/src/config.ts). The HTTP client uses base URL **`/api`** in [`apps/client/src/api.ts`](apps/client/src/api.ts); Vite and production nginx proxy **`/api/*`** to the backend (see [`apps/client/vite.config.ts`](apps/client/vite.config.ts) and [`apps/client/nginx.conf`](apps/client/nginx.conf)). To call the API from another origin, change `API_URL` in code (and set server **`FRONTEND_ORIGIN`** for CORS).
+**Client:** the same **Web client ID** is in [`apps/client/src/config.ts`](apps/client/src/config.ts). The HTTP client uses base URL **`/api`** in [`apps/client/src/api.ts`](apps/client/src/api.ts); Vite and production nginx proxy **`/api/*`** to the backend (see [`apps/client/vite.config.ts`](apps/client/vite.config.ts) and [`apps/client/nginx.conf.template`](apps/client/nginx.conf.template)). To call the API from another origin, change `API_URL` in code (and set server **`FRONTEND_ORIGIN`** for CORS).
 
 ## Google OAuth
 

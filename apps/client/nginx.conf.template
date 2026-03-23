@@ -35,31 +35,28 @@ http {
         document 1;
     }
 
-    # SPA + reverse proxy to API (Docker Compose: service name `backend`)
+    # SPA + reverse proxy to API (__BACKEND_PROXY_URL__ replaced at container start)
     server {
-        listen 3000;
-        server_name localhost; 
+        # Only one server block on this port → default_server accepts any Host (e.g. *.run.app on Cloud Run)
+        listen __NGINX_LISTEN_PORT__ default_server;
+        server_name localhost;
 
-        root /usr/share/nginx/html; #See frontend.Dockerfile runner stage
+        root /usr/share/nginx/html;
         index index.html;
 
         gzip on;
         gzip_types text/plain text/css application/json application/javascript text/xml application/xml;
 
-        # Serve React.js static files with proper caching
         location / {
             try_files $uri /index.html;
         }
 
-        # Serve static assets with long cache expiration
         location ~* \.(?:ico|css|js|gif|jpe?g|png|woff2?|eot|ttf|svg|map)$ {
             expires 1y;
             access_log off;
             add_header Cache-Control "public, immutable";
         }
 
-        # SSE must not be buffered by nginx
-        # /api/... -> backend /... (trailing slash on location + proxy_pass strips the /api/ prefix)
         location = /api {
             return 308 /api/;
         }
@@ -69,9 +66,10 @@ http {
                 return 404;
             }
 
-            proxy_pass http://backend:3001/;
+            proxy_pass __BACKEND_PROXY_URL__;
             proxy_http_version 1.1;
-            proxy_set_header Host $host;
+            # $proxy_host matches the host in proxy_pass — required when API is another Cloud Run URL
+            proxy_set_header Host $proxy_host;
             proxy_set_header X-Real-IP $remote_addr;
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
             proxy_set_header X-Forwarded-Proto $scheme;

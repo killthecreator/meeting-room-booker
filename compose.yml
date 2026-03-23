@@ -3,7 +3,7 @@ services:
     build:
       context: .
       dockerfile: infra/docker/backend.Dockerfile
-      target: production
+      target: dev
     # No host port: API only via frontend nginx /api/ (add "3001:3001" temporarily for local debugging).
     env_file:
       - ./apps/server/.env
@@ -15,11 +15,14 @@ services:
     build:
       context: .
       dockerfile: infra/docker/frontend.Dockerfile
-      target: runner
+      target: dev
     depends_on:
       - backend
     ports:
       - 3000:3000
+    environment:
+      PORT: 3000
+      BACKEND_PROXY_URL: "http://backend:3001/"
     volumes:
       - ./apps/client/src/:/app/apps/client/src/
       - ./apps/client/index.html:/app/apps/client/index.html
