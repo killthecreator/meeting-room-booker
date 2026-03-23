@@ -7,7 +7,7 @@ import type {
 } from "@meeting-calendar/shared";
 
 /** Empty / unset = same-origin `/api/...` (nginx in Docker, or Vite dev proxy → backend). */
-export const API_URL = import.meta.env.VITE_API_URL || "/api";
+export const API_URL = "/api";
 
 const apiWrapper = axios.create({
   baseURL: API_URL,
