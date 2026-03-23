@@ -8,10 +8,6 @@ services:
       - 3001:3001
     env_file:
       - ./apps/server/.env
-    environment:
-      VITE_GOOGLE_CLIENT_ID: 520618371557-k3fj090l0rprsmg9vgucjrs4vpng0hqm.apps.googleusercontent.com
-      VITE_API_URL: http://localhost:3001
-
     volumes:
       - ./apps/server/src/:/app/apps/server/src/
       - ./apps/server/tsconfig.json/:/app/apps/server/tsconfig.json
@@ -20,13 +16,16 @@ services:
     build:
       context: .
       dockerfile: infra/docker/frontend.Dockerfile
-      target: dev
+      target: runner
     depends_on:
       - backend
     ports:
-      - 5173:5173
+      - 3000:3000
     env_file:
       - ./apps/client/.env
+    environment:
+      VITE_GOOGLE_CLIENT_ID: 520618371557-k3fj090l0rprsmg9vgucjrs4vpng0hqm.apps.googleusercontent.com
+      VITE_API_URL: http://localhost:3001
     volumes:
       - ./apps/client/src/:/app/apps/client/src/
       - ./apps/client/index.html:/app/apps/client/index.html

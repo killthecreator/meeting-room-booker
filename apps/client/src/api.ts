@@ -6,7 +6,8 @@ import type {
   UpdateMeetingDTO,
 } from "@meeting-calendar/shared";
 
-export const API_URL = import.meta.env.VITE_API_URL;
+/** Empty string = same origin (nginx proxy to backend in Docker `runner` image). */
+export const API_URL = import.meta.env.VITE_API_URL ?? "";
 
 const apiWrapper = axios.create({
   baseURL: API_URL,

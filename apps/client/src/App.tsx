@@ -39,9 +39,12 @@ export default function App() {
       </AuthProvider>
       <ToastContainer
         position="top-center"
-        autoClose={3000}
+        autoClose={1000}
         closeOnClick
         pauseOnHover
+        newestOnTop
+        hideProgressBar
+        stacked
         theme={prefersDark ? "dark" : "light"}
       />
     </GoogleOAuthProvider>

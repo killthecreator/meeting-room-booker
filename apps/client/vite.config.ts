@@ -18,7 +18,14 @@ export default defineConfig({
   },
   server: {
     host: true,
-    port: 5173,
+    port: 3000,
     strictPort: true,
+    allowedHosts: ["localhost"],
+  },
+  preview: {
+    host: true,
+    port: 3000,
+    strictPort: true,
+    allowedHosts: ["localhost"],
   },
 });
