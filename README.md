@@ -2,6 +2,15 @@
 
 Monorepo: meeting room booking calendar with **React + TypeScript + Vite**, **Express** backend, shared types and schemas in **`@meeting-calendar/shared`**. Sign-in via **Google** (OAuth authorization code flow).
 
+## Features
+
+- **Week calendar** with a per-day timeline; create meetings by clicking a slot (name, description, time).
+- **Drag** your meetings to another day/slot; **resize** start/end by dragging block edges (with overlap checks).
+- **Meeting tooltip** on hover: details, organizer; owners can **edit title and description** inline (see [`MeetingEditor`](apps/client/src/components/MeetingBlock/MeetingEditor.tsx)).
+- **Smart tooltip placement**: the popover picks a side (below/above/left/right) so it stays inside the day’s timeline cell when possible ([`floatingTooltipPosition`](apps/client/src/lib/floatingTooltipPosition.ts)).
+- **Live updates**: meeting list syncs over **SSE** (`GET /meetings/events`) after creates/updates/deletes.
+- **Data store**: **SQLite in memory** on the server; a **weekly job** (Sunday 23:59) deletes only meetings whose `start` falls in the **current ISO week (UTC)**—older weeks are kept until you restart the server (see [`apps/server/src/db.ts`](apps/server/src/db.ts)).
+
 ## Layout
 
 | Path | Package | Description |
@@ -26,7 +35,7 @@ bun install
 
 See the [server README](apps/server/README.md) and [client README](apps/client/README.md) for details.
 
-**Server** (`apps/server/.env`): `GOOGLE_CLIENT_SECRET`, `FRONTEND_ORIGIN`, optional `PORT` (default `3001`), `NODE_ENV` (`dev` | `production`), optional `ALLOWED_NETWORK`. The Google OAuth **Web client ID** (public) lives in [`apps/server/src/config.ts`](apps/server/src/config.ts).
+**Server** (`apps/server/.env`): `GOOGLE_CLIENT_SECRET`, `FRONTEND_ORIGIN`, optional `PORT` (default `3001`), `NODE_ENV` (`dev` | `production`). The Google OAuth **Web client ID** (public) lives in [`apps/server/src/config.ts`](apps/server/src/config.ts).
 
 **Client:** the same **Web client ID** is in [`apps/client/src/config.ts`](apps/client/src/config.ts). The HTTP client uses base URL **`/api`** in [`apps/client/src/api.ts`](apps/client/src/api.ts); Vite and production nginx proxy **`/api/*`** to the backend (see [`apps/client/vite.config.ts`](apps/client/vite.config.ts) and [`apps/client/nginx.conf.template`](apps/client/nginx.conf.template)). To call the API from another origin, change `API_URL` in code (and set server **`FRONTEND_ORIGIN`** for CORS).
 
@@ -36,15 +45,6 @@ See the [server README](apps/server/README.md) and [client README](apps/client/R
 2. Under **Authorized JavaScript origins**, add the frontend origin, e.g. `http://localhost:3000`.
 3. Under **Authorized redirect URIs**, for `@react-oauth/google` with `flow: "auth-code"`, you typically add **`postmessage`** (see the [library docs](https://www.npmjs.com/package/@react-oauth/google)).
 4. Set **`GOOGLE_CLIENT_SECRET`** in **`apps/server/.env`**. Copy the OAuth **Web client ID** into **`apps/server/src/config.ts`** and **`apps/client/src/config.ts`** (`GOOGLE_CLIENT_ID`) so both match the Google Cloud client (the ID is public in the browser bundle).
-
-## Restricting access by network (e.g. office Wi‑Fi)
-
-The browser cannot tell the app which Wi‑Fi you are on. The server can allow requests only from IPs in configured subnets.
-
-1. In `apps/server/.env`, set **`ALLOWED_NETWORK`**: comma-separated IPv4 CIDRs, e.g. `192.168.1.0/24` or `192.168.1.0/24,10.0.0.0/8`. Empty means no restriction.
-2. Behind a reverse proxy, **`trust proxy`** is enabled; configure `X-Forwarded-For` correctly.
-
-Requests from other addresses get **403**.
 
 ## Development
 

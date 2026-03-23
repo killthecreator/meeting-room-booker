@@ -2,7 +2,6 @@ import express from "express";
 import cookieParser from "cookie-parser";
 import meetingRouter from "./routes/meeting/meeting.routes";
 import authRouter from "./routes/auth/auth.routes";
-import { ipCheckMiddleware } from "./middlewares/ipCheckMiddleware";
 import morgan from "morgan";
 import { errorHandler } from "./middlewares/errorHandler";
 import { errorLogger } from "./middlewares/errorLogger";
@@ -19,7 +18,6 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(limiter);
 app.use(express.urlencoded({ extended: true }));
-app.use(ipCheckMiddleware);
 app.use(helmet());
 
 app.use(morgan("tiny"));

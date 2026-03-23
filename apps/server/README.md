@@ -12,7 +12,6 @@ Use `.env` in this directory. Validated in `src/env.ts`:
 | `FRONTEND_ORIGIN` | yes | Allowed SPA **Origin** for **CORS** when the browser calls this API on a **different** host/port than the page (e.g. `http://localhost:3000`). Not used for same-origin **`/api`** proxying through Vite or nginx. |
 | `PORT` | no | HTTP port, default `3001` |
 | `NODE_ENV` | no | `dev` or `production` (affects cookie `secure` and SIGTERM handling) |
-| `ALLOWED_NETWORK` | no | See root README: comma-separated IPv4 CIDRs; empty disables IP filtering |
 
 The Google OAuth **Web client ID** (public) is **`GOOGLE_CLIENT_ID`** in [`src/config.ts`](src/config.ts)—same value as the client app’s `apps/client/src/config.ts`.
 
@@ -25,6 +24,14 @@ The Google OAuth **Web client ID** (public) is **`GOOGLE_CLIENT_ID`** in [`src/c
 - `GET /auth/google/logout` — clears cookie
 - `GET /auth/google/verify-token` — user payload or empty body if no session
 - `/meetings/*` — behind `authMiddleware`, requires a valid token in the cookie
+  - `GET /meetings`, `POST /meetings`, `GET /meetings/events` (SSE)
+  - `PATCH /meetings/:id` — partial update (`start`, `end`, `name`, `description` per shared schema); owner-only
+  - `DELETE /meetings/:id` — owner-only
+
+## Data and housekeeping
+
+- **SQLite in-memory** (`bun:sqlite`, [`src/db.ts`](src/db.ts)): schema includes meeting times as ISO strings; restarting the process clears all data.
+- **Weekly cleanup** (cron **Sunday 23:59**): deletes only rows where `start` is in the **current ISO week (UTC)**; meetings from other weeks in the same process lifetime are left in place.
 
 ## Scripts
 
@@ -43,7 +50,7 @@ Production output is a single **esbuild** ESM bundle: dependencies stay external
 
 ## Proxy and networking
 
-**`trust proxy`** is set for one proxy hop so IP checks work correctly behind a reverse proxy.
+**`trust proxy`** is set for one proxy hop so **`req.ip`** (and similar) reflect the client when behind a reverse proxy (e.g. `X-Forwarded-For`).
 
 In **Docker / nginx**, the browser calls the API under **`/api/...`**; nginx forwards to this process with the **`/api/`** prefix removed, so this app keeps mounting **`/auth`**, **`/meetings`**, and **`/health`** at the URL root (no `/api` in Express).
 

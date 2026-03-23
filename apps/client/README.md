@@ -2,6 +2,16 @@
 
 Frontend: **React 19**, **Vite 8**, **Tailwind CSS 4**. Request payloads and types align with **`@meeting-calendar/shared`**.
 
+## UI behavior
+
+| Area | Notes |
+|------|--------|
+| **Meeting blocks** | [`MeetingBlock`](src/components/MeetingBlock/index.tsx): draggable for owners; resize handles on the sides; delete control. |
+| **Tooltip** | [`MeetingTooltip`](src/components/MeetingBlock/MeetingTooltip.tsx): opens on hover; **fixed** position computed from the block (`anchorRef`) and the day’s **table cell** (`boundaryRef`) so the panel tries to stay inside the column. |
+| **Placement** | [`floatingTooltipPosition`](src/lib/floatingTooltipPosition.ts): tries bottom/top/left/right placements in order, then **clamps** into the cell if none fit. Repositions on scroll, resize, and `ResizeObserver` (e.g. while editing). |
+| **Edit meeting** | Owners: pencil in the tooltip → [`MeetingEditor`](src/components/MeetingBlock/MeetingEditor.tsx); saves via `PATCH` with name + description. |
+| **Create meeting** | Slot click → confirm dialog from [`ConfirmMeetingCreationContext`](src/context/ConfirmMeetingCreationContext/index.tsx). |
+
 ## Configuration
 
 - **Google OAuth Web client ID** — [`src/config.ts`](src/config.ts) (`GOOGLE_CLIENT_ID`), used by `GoogleOAuthProvider` in `App.tsx`. Must match the same OAuth client as on the server (`apps/server/src/config.ts`) and the value in Google Cloud Console.
