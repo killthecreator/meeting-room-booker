@@ -1,5 +1,6 @@
 # syntax=docker/dockerfile:1
 # Build from repository root: docker build -f infra/docker/frontend.Dockerfile .
+# For Cloud Run from Apple Silicon: docker build --platform linux/amd64 ... (see Makefile)
 
 ARG BUN_VERSION=1
 
@@ -39,7 +40,7 @@ RUN bun run build:client
 FROM scratch AS build
 COPY --from=builder /app/apps/client/dist /dist
 
-# Production — nginx serves SPA and proxies API (BACKEND_PROXY_URL at runtime; Compose default backend:3001)
+# Production — nginx serves SPA and proxies API (BACKEND_PROXY_URL required at runtime)
 FROM nginx:1.27-alpine AS runner
 
 COPY --from=builder /app/apps/client/dist /usr/share/nginx/html

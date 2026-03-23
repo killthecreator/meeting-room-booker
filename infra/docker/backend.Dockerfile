@@ -1,5 +1,6 @@
 # syntax=docker/dockerfile:1
 # Build from repository root: docker build -f infra/docker/backend.Dockerfile .
+# For Google Cloud Run from Apple Silicon: docker build --platform linux/amd64 ... (see Makefile)
 
 ARG BUN_VERSION=1
 

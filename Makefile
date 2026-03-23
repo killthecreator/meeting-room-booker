@@ -9,13 +9,17 @@ stop:
 BE_TAG ?= meeting-room-booker-backend:prod
 FE_TAG ?= meeting-room-booker-frontend:prod
 
-# Backend production image (Bun, port 3001 inside container)
+# Cloud Run runs linux/amd64. Building on Apple Silicon without this → exec format error on container start.
+# For native ARM images locally: make build-prod DOCKER_PLATFORM=linux/arm64
+DOCKER_PLATFORM ?= linux/amd64
+
+# Backend production image (Bun; listen on $PORT e.g. 8080 on Cloud Run)
 build-be-prod:
-	docker build -f infra/docker/backend.Dockerfile --target production -t $(BE_TAG) .
+	docker build --platform $(DOCKER_PLATFORM) -f infra/docker/backend.Dockerfile --target production -t $(BE_TAG) .
 
 # Frontend production image (nginx + static SPA; set BACKEND_PROXY_URL and PORT at run/deploy)
 build-fe-prod:
-	docker build -f infra/docker/frontend.Dockerfile --target runner -t $(FE_TAG) .
+	docker build --platform $(DOCKER_PLATFORM) -f infra/docker/frontend.Dockerfile --target runner -t $(FE_TAG) .
 
 build-prod: build-be-prod build-fe-prod
 
