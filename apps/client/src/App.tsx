@@ -9,6 +9,7 @@ import { GoogleOAuthProvider } from "@react-oauth/google";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/ReactToastify.css";
 import { usePrefersDarkMode } from "./lib/usePrefersDarkMode";
+import { GOOGLE_CLIENT_ID } from "./config";
 
 function AppContent() {
   const { user } = useAuth();
@@ -33,7 +34,7 @@ export default function App() {
   const prefersDark = usePrefersDarkMode();
 
   return (
-    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID ?? ""}>
+    <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
       <AuthProvider>
         <AppContent />
       </AuthProvider>

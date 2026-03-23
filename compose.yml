@@ -16,16 +16,12 @@ services:
       context: .
       dockerfile: infra/docker/frontend.Dockerfile
       target: runner
-      args:
-        VITE_GOOGLE_CLIENT_ID: 520618371557-k3fj090l0rprsmg9vgucjrs4vpng0hqm.apps.googleusercontent.com
     depends_on:
       - backend
     ports:
       - 3000:3000
     env_file:
       - ./apps/client/.env
-    environment:
-      VITE_GOOGLE_CLIENT_ID: 520618371557-k3fj090l0rprsmg9vgucjrs4vpng0hqm.apps.googleusercontent.com
     volumes:
       - ./apps/client/src/:/app/apps/client/src/
       - ./apps/client/index.html:/app/apps/client/index.html

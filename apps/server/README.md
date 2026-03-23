@@ -8,12 +8,13 @@ Use `.env` in this directory. Validated in `src/env.ts`:
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `GOOGLE_CLIENT_ID` | yes | OAuth 2.0 Client ID |
-| `GOOGLE_CLIENT_SECRET` | yes | Client secret |
-| `FRONTEND_ORIGIN` | yes | SPA origin for CORS (e.g. `http://localhost:3000`) |
+| `GOOGLE_CLIENT_SECRET` | yes | OAuth 2.0 client secret (never commit; keep in `.env` only) |
+| `FRONTEND_ORIGIN` | yes | Allowed SPA **Origin** for **CORS** when the browser calls this API on a **different** host/port than the page (e.g. `http://localhost:3000`). Not used for same-origin **`/api`** proxying through Vite or nginx. |
 | `PORT` | no | HTTP port, default `3001` |
 | `NODE_ENV` | no | `dev` or `production` (affects cookie `secure` and SIGTERM handling) |
 | `ALLOWED_NETWORK` | no | See root README: comma-separated IPv4 CIDRs; empty disables IP filtering |
+
+The Google OAuth **Web client ID** (public) is **`GOOGLE_CLIENT_ID`** in [`src/config.ts`](src/config.ts)—same value as the client app’s `apps/client/src/config.ts`.
 
 `OAuth2Client` uses redirect URI **`postmessage`**, matching the client’s `@react-oauth/google` auth-code flow.
 

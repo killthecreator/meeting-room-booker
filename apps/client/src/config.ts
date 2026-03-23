@@ -11,6 +11,9 @@ export const CONFIG = {
   WEEKS_TO_SHOW: 2,
 };
 
+export const GOOGLE_CLIENT_ID =
+  "520618371557-k3fj090l0rprsmg9vgucjrs4vpng0hqm.apps.googleusercontent.com";
+
 export const HOURS = Array.from(
   { length: CONFIG.DAY_END_HOUR - CONFIG.DAY_START_HOUR },
   (_, i) => i + CONFIG.DAY_START_HOUR,
