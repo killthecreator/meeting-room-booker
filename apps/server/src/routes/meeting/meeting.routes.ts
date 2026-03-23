@@ -8,6 +8,8 @@ import {
 
 const router = Router();
 
+router.get("/events", meetingsController.meetingsEventsStream);
+
 router
   .route("/")
   .get(meetingsController.getAll)
@@ -23,7 +25,5 @@ router
     meetingsController.updateMeeting,
   )
   .delete(meetingsController.deleteMeeting);
-
-router.get("/events", meetingsController.meetingsEventsStream);
 
 export default router;

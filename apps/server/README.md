@@ -10,7 +10,7 @@ Use `.env` in this directory. Validated in `src/env.ts`:
 |----------|----------|-------------|
 | `GOOGLE_CLIENT_ID` | yes | OAuth 2.0 Client ID |
 | `GOOGLE_CLIENT_SECRET` | yes | Client secret |
-| `FRONTEND_ORIGIN` | yes | SPA origin for CORS (e.g. `http://localhost:5173`) |
+| `FRONTEND_ORIGIN` | yes | SPA origin for CORS (e.g. `http://localhost:3000`) |
 | `PORT` | no | HTTP port, default `3001` |
 | `NODE_ENV` | no | `dev` or `production` (affects cookie `secure` and SIGTERM handling) |
 | `ALLOWED_NETWORK` | no | See root README: comma-separated IPv4 CIDRs; empty disables IP filtering |
@@ -43,3 +43,7 @@ Production output is a single **esbuild** ESM bundle: dependencies stay external
 ## Proxy and networking
 
 **`trust proxy`** is set for one proxy hop so IP checks work correctly behind a reverse proxy.
+
+In **Docker / nginx**, the browser calls the API under **`/api/...`**; nginx forwards to this process with the **`/api/`** prefix removed, so this app keeps mounting **`/auth`**, **`/meetings`**, and **`/health`** at the URL root (no `/api` in Express).
+
+The **`compose.yml`** frontend **`runner`** service does not publish the backend port on the host by default; only the SPA port (**3000**) is exposed, and API traffic goes through nginx on that port.

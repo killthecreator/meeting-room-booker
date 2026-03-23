@@ -4,8 +4,7 @@ services:
       context: .
       dockerfile: infra/docker/backend.Dockerfile
       target: production
-    ports:
-      - 3001:3001
+    # No host port: API only via frontend nginx /api/ (add "3001:3001" temporarily for local debugging).
     env_file:
       - ./apps/server/.env
     volumes:
@@ -17,6 +16,9 @@ services:
       context: .
       dockerfile: infra/docker/frontend.Dockerfile
       target: runner
+      args:
+        VITE_API_URL: ""
+        VITE_GOOGLE_CLIENT_ID: 520618371557-k3fj090l0rprsmg9vgucjrs4vpng0hqm.apps.googleusercontent.com
     depends_on:
       - backend
     ports:
@@ -25,7 +27,8 @@ services:
       - ./apps/client/.env
     environment:
       VITE_GOOGLE_CLIENT_ID: 520618371557-k3fj090l0rprsmg9vgucjrs4vpng0hqm.apps.googleusercontent.com
-      VITE_API_URL: http://localhost:3001
+      # Empty = same-origin /api/ (proxied by nginx). Do not point at :3001 or the browser bypasses nginx.
+      VITE_API_URL: ""
     volumes:
       - ./apps/client/src/:/app/apps/client/src/
       - ./apps/client/index.html:/app/apps/client/index.html

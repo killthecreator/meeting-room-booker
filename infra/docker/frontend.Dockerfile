@@ -23,7 +23,6 @@ FROM deps AS dev
 COPY apps/client ./apps/client
 COPY packages/shared ./packages/shared
 
-EXPOSE 5173
 CMD ["bun", "run", "-F", "@meeting-calendar/client", "dev"]
 
 FROM deps AS builder
@@ -34,13 +33,24 @@ COPY packages/shared ./packages/shared
 
 WORKDIR /app
 
-ARG VITE_API_URL=http://localhost:3001
-ARG VITE_GOOGLE_CLIENT_ID=
+# For nginx runner: leave VITE_API_URL empty so the browser calls same origin; nginx proxies /auth and /meetings.
+ARG VITE_API_URL=
+ARG VITE_GOOGLE_CLIENT_ID=520618371557-k3fj090l0rprsmg9vgucjrs4vpng0hqm.apps.googleusercontent.com
 ENV VITE_API_URL=${VITE_API_URL}
 ENV VITE_GOOGLE_CLIENT_ID=${VITE_GOOGLE_CLIENT_ID}
 
 RUN bun run build:client
 
-# Production — static files only (no nginx); default target `build` is scratch with /dist for GCP / object storage
+# Export /dist only (e.g. object storage) — `docker build --target build`
 FROM scratch AS build
 COPY --from=builder /app/apps/client/dist /dist
+
+# Production — nginx serves SPA and proxies API to Compose service `backend:3001`
+FROM nginx:1.27-alpine AS runner
+
+#Copying our build as nginx root. Used in nginx.conf in http.server.root
+COPY --from=builder /app/apps/client/dist /usr/share/nginx/html 
+
+#Copying the config itself
+COPY apps/client/nginx.conf /etc/nginx/nginx.conf
+CMD ["nginx", "-g", "daemon off;"]
