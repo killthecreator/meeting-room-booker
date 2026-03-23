@@ -201,7 +201,11 @@ export function MeetingBlock({
         onDragEnd: handleDragEnd,
       })}
     >
-      <MeetingTooltip meeting={meeting} open={showTooltip} />
+      <MeetingTooltip
+        meeting={meeting}
+        open={showTooltip}
+        isEditable={isUsersMeeting}
+      />
       <span className="min-w-0 flex-1 overflow-hidden text-[13px] font-medium text-ellipsis whitespace-nowrap">
         {meeting.name}
       </span>

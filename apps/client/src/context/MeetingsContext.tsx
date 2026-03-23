@@ -106,13 +106,10 @@ export function MeetingsProvider({ children }: MeetingsProviderProps) {
 
   const updateMeeting = useCallback(
     async (id: string, updates: UpdateMeetingDTO): Promise<void> => {
-      const body: Record<string, string> = {};
-      if (updates.start) body.start = updates.start;
-      if (updates.end) body.end = updates.end;
-      if (Object.keys(body).length === 0) return;
+      if (Object.keys(updates).length === 0) return;
 
       try {
-        await api.meetings.updateById(id, body);
+        await api.meetings.updateById(id, updates);
       } catch (err) {
         console.error(err);
         toast.error("Failed to update meeting");
