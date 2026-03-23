@@ -10,6 +10,7 @@ import { authMiddleware } from "./middlewares/authMiddleware";
 import cors from "cors";
 import { ENV } from "./env";
 import { limiter } from "./middlewares/rateLimitter";
+import helmet from "helmet";
 
 const app = express();
 app.use(cors({ credentials: true, origin: ENV.FRONTEND_ORIGIN }));
@@ -19,6 +20,7 @@ app.use(express.json());
 app.use(limiter);
 app.use(express.urlencoded({ extended: true }));
 app.use(ipCheckMiddleware);
+app.use(helmet());
 
 app.use(morgan("tiny"));
 
