@@ -12,7 +12,10 @@ db.run(
 );
 
 /** Monday 00:00:00.000 UTC → next Monday 00:00:00.000 UTC (exclusive), ISO week. */
-function getUtcIsoWeekRange(now: Date): { weekStartIso: string; weekEndExclusiveIso: string } {
+function getUtcIsoWeekRange(now: Date): {
+  weekStartIso: string;
+  weekEndExclusiveIso: string;
+} {
   const y = now.getUTCFullYear();
   const m = now.getUTCMonth();
   const d = now.getUTCDate();
@@ -31,10 +34,10 @@ cron.schedule("59 23 * * SUN", async () => {
   console.log("🧹 Weekly cleanup (in-memory, current week only)");
 
   const { weekStartIso, weekEndExclusiveIso } = getUtcIsoWeekRange(new Date());
-  const result = db.run(
-    `DELETE FROM meetings WHERE start >= ? AND start < ?`,
-    [weekStartIso, weekEndExclusiveIso],
-  );
+  const result = db.run(`DELETE FROM meetings WHERE start >= ? AND start < ?`, [
+    weekStartIso,
+    weekEndExclusiveIso,
+  ]);
 
   console.log(
     `Deleted ${result.changes} meeting(s) for week ${weekStartIso} .. ${weekEndExclusiveIso} (VACUUM skipped, in-memory)`,

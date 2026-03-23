@@ -24,8 +24,8 @@ export function CurrentTimeIndicator() {
       style={{ left: `${pct}%` }}
     >
       <div className="relative h-full">
-        <div className="bg-red-500 absolute -top-px left-1/2 h-2 w-2 -translate-x-1/2 rounded-full shadow-sm" />
-        <div className="bg-red-500/80 absolute top-0 bottom-0 left-1/2 w-px -translate-x-1/2" />
+        <div className="absolute -top-px left-1/2 h-2 w-2 -translate-x-1/2 rounded-full bg-red-500 shadow-sm" />
+        <div className="absolute top-0 bottom-0 left-1/2 w-px -translate-x-1/2 bg-red-500/80" />
       </div>
     </div>
   );

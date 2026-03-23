@@ -10,17 +10,17 @@ export default function Header() {
         <div className="from-primary-500 to-primary-700 shadow-primary-500/20 flex h-8 w-8 items-center justify-center rounded-lg bg-linear-to-br shadow-sm">
           <CalendarIcon className="size-4 text-white" />
         </div>
-        <h1 className="text-base font-semibold tracking-tight text-secondary-900 dark:text-zinc-100">
+        <h1 className="text-secondary-900 text-base font-semibold tracking-tight dark:text-zinc-100">
           Meeting Room Booker
         </h1>
       </div>
       <div className="flex items-center gap-3">
-        <span className="text-sm font-medium text-secondary-500 dark:text-zinc-400">
+        <span className="text-secondary-500 text-sm font-medium dark:text-zinc-400">
           {user!.name}
         </span>
         <button
           onClick={logout}
-          className="cursor-pointer rounded-lg border border-secondary-200 bg-white px-3 py-1.5 text-xs font-medium text-secondary-600 shadow-sm transition-all duration-200 hover:border-secondary-300 hover:text-secondary-800 hover:shadow active:scale-[0.97] dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:border-zinc-500 dark:hover:text-zinc-100"
+          className="border-secondary-200 text-secondary-600 hover:border-secondary-300 hover:text-secondary-800 cursor-pointer rounded-lg border bg-white px-3 py-1.5 text-xs font-medium shadow-sm transition-all duration-200 hover:shadow active:scale-[0.97] dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:border-zinc-500 dark:hover:text-zinc-100"
         >
           Sign out
         </button>

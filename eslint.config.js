@@ -6,11 +6,7 @@ import tseslint from "typescript-eslint";
 import { defineConfig, globalIgnores } from "eslint/config";
 
 export default defineConfig([
-  globalIgnores([
-    "dist",
-    "**/node_modules",
-    "package-lock.json",
-  ]),
+  globalIgnores(["dist", "**/node_modules", "package-lock.json"]),
   {
     files: ["apps/client/**/*.{ts,tsx}"],
     extends: [

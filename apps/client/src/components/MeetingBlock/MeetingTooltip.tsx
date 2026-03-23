@@ -46,7 +46,7 @@ export function MeetingTooltip({
         (open || isEditing) && "group-hover/meeting-block:block",
         isEditing && "pointer-events-auto block",
       )}
-      style={{ positionAnchor: `--tooltip-${meeting.id}` } as React.CSSProperties}
+      style={{ positionAnchor: `--tooltip-${meeting.id}` }}
       onPointerDown={(e) => isEditing && e.stopPropagation()}
     >
       <div className="flex flex-col gap-2">

@@ -1,9 +1,6 @@
 import { z } from "zod";
 
-export {
-  googleAuthSchema,
-  authUserSchema,
-} from "./schemas/authUser.js";
+export { googleAuthSchema, authUserSchema } from "./schemas/authUser.js";
 export {
   meetingSchema,
   createMeetingDTOSchema,

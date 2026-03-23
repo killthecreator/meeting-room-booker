@@ -11,10 +11,10 @@ export function LoginPage() {
         <div className="from-primary-500 to-primary-700 shadow-primary-500/30 mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-linear-to-br shadow-lg">
           <CalendarIcon className="size-7 text-white" />
         </div>
-        <h1 className="mb-1 text-center text-xl font-bold tracking-tight text-secondary-900 dark:text-zinc-100">
+        <h1 className="text-secondary-900 mb-1 text-center text-xl font-bold tracking-tight dark:text-zinc-100">
           Meeting Room Booker
         </h1>
-        <p className="mb-8 text-center text-sm font-light text-secondary-500 dark:text-zinc-400">
+        <p className="text-secondary-500 mb-8 text-center text-sm font-light dark:text-zinc-400">
           Sign in with your Google account to continue
         </p>
         {error && (
@@ -28,7 +28,7 @@ export function LoginPage() {
         <button
           type="button"
           onClick={login}
-          className="flex h-12 w-full cursor-pointer items-center justify-center gap-3 rounded-xl border border-secondary-200 bg-white text-base font-medium text-secondary-800 shadow-sm transition-all duration-200 hover:border-secondary-300 hover:shadow-md active:scale-[0.98] disabled:cursor-wait disabled:opacity-80 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100 dark:hover:border-zinc-500"
+          className="border-secondary-200 text-secondary-800 hover:border-secondary-300 flex h-12 w-full cursor-pointer items-center justify-center gap-3 rounded-xl border bg-white text-base font-medium shadow-sm transition-all duration-200 hover:shadow-md active:scale-[0.98] disabled:cursor-wait disabled:opacity-80 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100 dark:hover:border-zinc-500"
         >
           <GoogleLogo className="size-5" />
           <span>Sign in with Google</span>

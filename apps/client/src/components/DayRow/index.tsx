@@ -39,9 +39,9 @@ export function DayRow({
     <tr
       data-daykey={dayKey(date)}
       className={cn(
-        "group/row relative flex h-14 border-b border-secondary-100 transition-colors duration-200 dark:border-zinc-800",
+        "group/row border-secondary-100 relative flex h-14 border-b transition-colors duration-200 dark:border-zinc-800",
         weekend && "bg-secondary-100/50 dark:bg-zinc-800/35",
-        today && "z-1 border-primary-200/60 dark:border-primary-500/35",
+        today && "border-primary-200/60 dark:border-primary-500/35 z-1",
       )}
     >
       {today && (
