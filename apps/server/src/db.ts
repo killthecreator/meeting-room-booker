@@ -1,7 +1,7 @@
 import { Database } from "bun:sqlite";
 import cron from "node-cron";
 
-const db = new Database(":memory:");
+const db = new Database("sqlite.db");
 
 db.run(
   `CREATE TABLE IF NOT EXISTS meetings (

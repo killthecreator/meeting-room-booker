@@ -9,7 +9,8 @@ services:
       - ./apps/server/.env
     volumes:
       - ./apps/server/src/:/app/apps/server/src/
-      - ./apps/server/tsconfig.json/:/app/apps/server/tsconfig.json
+      - ./apps/server/sqlite.db:/app/apps/server/sqlite.db
+      - ./apps/server/tsconfig.json:/app/apps/server/tsconfig.json
 
   frontend:
     build:
