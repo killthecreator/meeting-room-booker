@@ -1,15 +1,18 @@
-import { Database } from "bun:sqlite";
+import { Pool } from "pg";
 import cron from "node-cron";
+import { ENV } from "./env";
 
-const db = new Database("sqlite.db");
+export const pool = new Pool({
+  host: ENV.DB_HOST,
+  port: ENV.DB_PORT,
+  user: ENV.DB_USER,
+  password: ENV.DB_PASSWORD,
+  database: ENV.DB_DATABASE,
+});
 
-db.run(
-  `CREATE TABLE IF NOT EXISTS meetings (
-    id TEXT PRIMARY KEY, name TEXT, description TEXT, 
-    ownerId TEXT, ownerName TEXT, ownerEmail TEXT, ownerPicture TEXT, 
-    start TEXT, end TEXT
-  )`,
-);
+pool.on("error", (err) => {
+  console.error("Unexpected PostgreSQL pool error", err);
+});
 
 /** Monday 00:00:00.000 UTC → next Monday 00:00:00.000 UTC (exclusive), ISO week. */
 function getUtcIsoWeekRange(now: Date): {
@@ -19,7 +22,7 @@ function getUtcIsoWeekRange(now: Date): {
   const y = now.getUTCFullYear();
   const m = now.getUTCMonth();
   const d = now.getUTCDate();
-  const day = now.getUTCDay(); // 0 Sun .. 6 Sat
+  const day = now.getUTCDay();
   const diffToMonday = day === 0 ? -6 : 1 - day;
   const mondayMs = Date.UTC(y, m, d + diffToMonday, 0, 0, 0, 0);
   const nextMondayMs = mondayMs + 7 * 24 * 60 * 60 * 1000;
@@ -29,19 +32,38 @@ function getUtcIsoWeekRange(now: Date): {
   };
 }
 
-// weekly "cleanup" at 23:59 on sunday — only meetings whose start falls in the current ISO week (UTC)
-cron.schedule("59 23 * * SUN", async () => {
-  console.log("🧹 Weekly cleanup (in-memory, current week only)");
+export async function initDb(): Promise<void> {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS meetings (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      description TEXT NOT NULL DEFAULT '',
+      owner_id TEXT NOT NULL,
+      owner_name TEXT NOT NULL,
+      owner_email TEXT NOT NULL,
+      owner_picture TEXT NOT NULL,
+      start_time TEXT NOT NULL,
+      end_time TEXT NOT NULL
+    )
+  `);
 
-  const { weekStartIso, weekEndExclusiveIso } = getUtcIsoWeekRange(new Date());
-  const result = db.run(`DELETE FROM meetings WHERE start >= ? AND start < ?`, [
-    weekStartIso,
-    weekEndExclusiveIso,
-  ]);
+  cron.schedule("59 23 * * SUN", async () => {
+    console.log("🧹 Weekly cleanup (PostgreSQL, current ISO week UTC)");
 
-  console.log(
-    `Deleted ${result.changes} meeting(s) for week ${weekStartIso} .. ${weekEndExclusiveIso} (VACUUM skipped, in-memory)`,
-  );
-});
+    const { weekStartIso, weekEndExclusiveIso } = getUtcIsoWeekRange(
+      new Date(),
+    );
+    const result = await pool.query(
+      `DELETE FROM meetings WHERE start_time >= $1 AND start_time < $2`,
+      [weekStartIso, weekEndExclusiveIso],
+    );
 
-export default db;
+    console.log(
+      `Deleted ${result.rowCount ?? 0} meeting(s) for week ${weekStartIso} .. ${weekEndExclusiveIso}`,
+    );
+  });
+}
+
+export async function closePool(): Promise<void> {
+  await pool.end();
+}

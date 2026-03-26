@@ -1,15 +1,44 @@
+# Local stack: Postgres + API + SPA. DB variables match apps/server/.env (`DB_*`).
+# Compose reads ${...} from a `.env` next to this file, or `docker compose --env-file <path>`.
+# First-time DB name/password: set before first `up`. To change them later, remove the volume: `docker compose down -v` (data loss) or migrate manually.
 services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_DB: ${DB_DATABASE:-meeting_room_booker}
+    ports:
+      - 5432:5432
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 3s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
   backend:
     build:
       context: .
       dockerfile: infra/docker/backend.Dockerfile
       target: dev
-    # No host port: API only via frontend nginx /api/ (add "3001:3001" temporarily for local debugging).
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
     env_file:
       - ./apps/server/.env
+    environment:
+      # Override apps/server/.env (DB_HOST=localhost) — in Docker the DB is the `postgres` service
+      DB_HOST: postgres
+      PORT: 3001
+    ports:
+      - 3001:3001
     volumes:
       - ./apps/server/src/:/app/apps/server/src/
-      - ./apps/server/sqlite.db:/app/apps/server/sqlite.db
       - ./apps/server/tsconfig.json:/app/apps/server/tsconfig.json
 
   frontend:
@@ -27,6 +56,9 @@ services:
     volumes:
       - ./apps/client/src/:/app/apps/client/src/
       - ./apps/client/index.html:/app/apps/client/index.html
-      - ./apps/client/tsconfig.app.json/:/app/apps/client/tsconfig.app.json
-      - ./apps/client/tsconfig.json/:/app/apps/client/tsconfig.json
-      - ./apps/client/tsconfig.node.json/:/app/apps/client/tsconfig.node.json
+      - ./apps/client/tsconfig.app.json:/app/apps/client/tsconfig.app.json
+      - ./apps/client/tsconfig.json:/app/apps/client/tsconfig.json
+      - ./apps/client/tsconfig.node.json:/app/apps/client/tsconfig.node.json
+
+volumes:
+  pgdata:

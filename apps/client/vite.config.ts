@@ -14,7 +14,7 @@ const serverOptions: CommonServerOptions = {
   //Works in same manner as nginx reverse proxy that is setup for prod
   proxy: {
     "/api": {
-      target: "http://localhost:3001",
+      target: process.env.BACKEND_PROXY_URL,
       changeOrigin: true,
       rewrite: (path) => path.replace(/^\/api/, ""),
     },

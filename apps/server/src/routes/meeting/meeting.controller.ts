@@ -6,19 +6,19 @@ import {
 import { meetingsService } from "./meeting.service";
 
 export const meetingsController = {
-  getAll(_req, res) {
-    const meetings = meetingsService.getAll();
+  async getAll(_req, res) {
+    const meetings = await meetingsService.getAll();
     res.status(200).json(meetings);
   },
-  createMeeting(req, res) {
-    const newMeeting = meetingsService.create(req.body);
+  async createMeeting(req, res) {
+    const newMeeting = await meetingsService.create(req.body);
     emitMeetingSync({ action: "add", meeting: newMeeting });
     res.status(201).json(newMeeting);
   },
-  updateMeeting(req: Request<{ id: string }>, res) {
+  async updateMeeting(req: Request<{ id: string }>, res) {
     const { id } = req.params;
 
-    const updatedMeeting = meetingsService.update(
+    const updatedMeeting = await meetingsService.update(
       id,
       req.body,
       res.locals.userId,
@@ -26,10 +26,10 @@ export const meetingsController = {
     emitMeetingSync({ action: "update", meeting: updatedMeeting });
     res.status(200).json(updatedMeeting);
   },
-  deleteMeeting(req: Request<{ id: string }>, res) {
+  async deleteMeeting(req: Request<{ id: string }>, res) {
     const { id } = req.params;
 
-    const meeting = meetingsService.deleteById(id, res.locals.userId);
+    const meeting = await meetingsService.deleteById(id, res.locals.userId);
     emitMeetingSync({ action: "delete", meeting });
     res.status(204).send();
   },

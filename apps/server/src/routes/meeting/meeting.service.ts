@@ -2,47 +2,59 @@ import type {
   CreateMeetingDTO,
   UpdateMeetingDTO,
 } from "@meeting-calendar/shared";
-import db from "../../db";
+import { pool } from "../../db";
 import { AuthenticationError, NotFoundError } from "../../lib/customErrors";
 import { dbMeetingToMeetingDTO } from "../../schemas/meeting.schema";
 
 export const meetingsService = {
-  getAll() {
-    const records = db.prepare("SELECT * FROM meetings").all();
-    return dbMeetingToMeetingDTO.array().parse(records);
+  async getAll() {
+    const { rows } = await pool.query(
+      `SELECT id, name, description, owner_id, owner_name, owner_email, owner_picture, start_time, end_time
+       FROM meetings`,
+    );
+    return dbMeetingToMeetingDTO.array().parse(rows);
   },
-  getById(id: string) {
-    const record = db.prepare("SELECT * FROM meetings WHERE id = ?").get(id);
+
+  async getById(id: string) {
+    const { rows } = await pool.query(
+      `SELECT id, name, description, owner_id, owner_name, owner_email, owner_picture, start_time, end_time
+       FROM meetings WHERE id = $1`,
+      [id],
+    );
+    const record = rows[0];
 
     if (!record) throw new NotFoundError("Meeting not found");
 
     return dbMeetingToMeetingDTO.parse(record);
   },
 
-  create(data: CreateMeetingDTO) {
+  async create(data: CreateMeetingDTO) {
     const id = crypto.randomUUID();
 
-    const queryParams = [
-      id,
-      data.name,
-      data.description,
-      data.owner.id,
-      data.owner.name,
-      data.owner.email,
-      data.owner.picture,
-      data.start,
-      data.end,
-    ];
-
-    db.prepare(
-      "INSERT INTO meetings (id, name, description, ownerId, ownerName, ownerEmail, ownerPicture, start, end) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-    ).run(...queryParams);
+    await pool.query(
+      `INSERT INTO meetings (
+        id, name, description,
+        owner_id, owner_name, owner_email, owner_picture,
+        start_time, end_time
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+      [
+        id,
+        data.name,
+        data.description,
+        data.owner.id,
+        data.owner.name,
+        data.owner.email,
+        data.owner.picture,
+        data.start,
+        data.end,
+      ],
+    );
 
     return this.getById(id);
   },
 
-  update(id: string, data: UpdateMeetingDTO, userId: string) {
-    const meeting = this.getById(id);
+  async update(id: string, data: UpdateMeetingDTO, userId: string) {
+    const meeting = await this.getById(id);
 
     if (meeting.owner.id !== userId) {
       throw new AuthenticationError("Not enough permissions");
@@ -50,29 +62,28 @@ export const meetingsService = {
     const entries = Object.entries(data);
     if (entries.length === 0) return meeting;
 
-    const updates: string[] = [];
-    const values: (number | string)[] = [];
+    const name = data.name ?? meeting.name;
+    const description = data.description ?? meeting.description;
+    const start = data.start ?? meeting.start;
+    const end = data.end ?? meeting.end;
 
-    for (const [key, value] of entries) {
-      updates.push(`${key} = ?`);
-      values.push(value);
-    }
-    values.push(id);
-
-    db.prepare(`UPDATE meetings SET ${updates.join(", ")} WHERE id = ?`).run(
-      ...values,
+    await pool.query(
+      `UPDATE meetings
+       SET name = $1, description = $2, start_time = $3, end_time = $4
+       WHERE id = $5`,
+      [name, description, start, end, id],
     );
 
     return this.getById(id);
   },
 
-  deleteById(id: string, userId: string) {
-    const meeting = this.getById(id);
+  async deleteById(id: string, userId: string) {
+    const meeting = await this.getById(id);
 
     if (meeting.owner.id !== userId) {
       throw new AuthenticationError("Not enough permissions");
     }
-    db.prepare("DELETE FROM meetings WHERE id = ?").run(id);
+    await pool.query(`DELETE FROM meetings WHERE id = $1`, [id]);
     return meeting;
   },
 };

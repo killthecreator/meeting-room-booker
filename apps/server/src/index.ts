@@ -10,6 +10,9 @@ import cors from "cors";
 import { ENV } from "./env";
 import { limiter } from "./middlewares/rateLimitter";
 import helmet from "helmet";
+import { closePool, initDb } from "./db";
+
+await initDb();
 
 const app = express();
 app.use(cors({ credentials: true, origin: ENV.FRONTEND_ORIGIN }));
@@ -36,15 +39,18 @@ app.use("/auth", authRouter);
 app.use("/meetings", authMiddleware, meetingRouter);
 app.use(errorLogger).use(errorHandler);
 
-const server = app.listen(ENV.PORT, "0.0.0.0", () => {
+const server = app.listen(ENV.PORT, () => {
   console.log("Server listening on", ENV.PORT);
 });
 
-// Graceful shutdown
-process.on("SIGTERM", () => {
-  if (ENV.NODE_ENV === "dev") return;
-  console.debug("SIGTERM signal received: closing HTTP server");
-  server.close(() => {
-    console.debug("HTTP server closed");
+function shutdown(signal: string) {
+  console.debug(`${signal} received: closing HTTP server`);
+  server.close(async () => {
+    console.debug("HTTP server closed; draining DB pool");
+    await closePool();
+    process.exit(0);
   });
-});
+}
+
+process.on("SIGTERM", shutdown);
+process.on("SIGINT", shutdown);
